@@ -1,0 +1,26 @@
+# ----------------------------------------------------------------------
+# Configurações do Handler FCGI para HostGator (Flask Backend)
+# ----------------------------------------------------------------------
+
+# Define o arquivo .fcgi como script executável
+AddHandler fcgid-script .fcgi
+
+# Ativa o mecanismo de reescrita
+RewriteEngine On
+
+# Evita loop de reescrita se o arquivo físico existir
+RewriteCond %{REQUEST_FILENAME} !-f
+
+# Redireciona todas as requisições para o script FCGI do Flask
+RewriteRule ^(.*)$ index.fcgi/$1 [QSA,L]
+
+# Bloqueia acesso publico ao mock-db.json para seguranca de dados
+<Files "mock-db.json">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</Files>

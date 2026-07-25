@@ -1,0 +1,40 @@
+# Dependency directories
+**/node_modules/
+**/out/
+**/.next/
+
+# Environments and environments variables
+**/virtualenv/
+**/.venv/
+**/venv/
+**/env/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+**/.env
+
+# Python compilation files
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# IDE configurations
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.vercel
+
+# Production Build Outputs
+dist-backend/
+backend-production.zip

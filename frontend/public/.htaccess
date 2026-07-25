@@ -1,0 +1,56 @@
+RewriteEngine On
+
+# ----------------------------------------------------------------------
+# SEGURANÇA E ISOLAMENTO DE SUBDOMÍNIOS (Evita quebrar a API)
+# Garante que as regras deste .htaccess só se apliquem ao domínio principal.
+# Impede herança indesejada de reescritas no subdomínio api.gojuryukaratekai.com.br
+# ----------------------------------------------------------------------
+RewriteCond %{HTTP_HOST} !^(www\.)?gojuryukaratekai\.com\.br$ [NC]
+RewriteRule ^ - [L]
+
+# -------------------------------------------------------
+# LIBERAR ACESSO DIRETO À PASTA _next (Next.js estático)
+# -------------------------------------------------------
+RewriteCond %{REQUEST_URI} ^/_next/
+RewriteRule ^ - [L]
+
+# -------------------------------------------------------
+# MAPEAMENTO DE PAYLOADS RSC DO NEXT.JS (App Router)
+# -------------------------------------------------------
+RewriteCond %{REQUEST_URI} ^/(.+)/__next\.!([^.]+)\.([^.]+)\.__PAGE__\.txt$
+RewriteRule ^.*$ /%1/__next.!%2/%3/__PAGE__.txt [L]
+
+RewriteCond %{REQUEST_URI} ^/(.+)/__next\.!([^.]+)\.([^.]+)\.txt$
+RewriteRule ^.*$ /%1/__next.!%2/%3.txt [L]
+
+# -------------------------------------------------------
+# ROTEAMENTO HTML — serve .html sem extensão na URL
+# -------------------------------------------------------
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.*)$ $1.html [L]
+
+# -------------------------------------------------------
+# MIME TYPES
+# -------------------------------------------------------
+<IfModule mod_mime.c>
+    AddType application/javascript .js .mjs
+    AddType text/css .css
+    AddType font/woff2 .woff2
+</IfModule>
+
+# -------------------------------------------------------
+# CACHE-CONTROL
+# -------------------------------------------------------
+<IfModule mod_headers.c>
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+
+    <FilesMatch "\.(js|mjs|css|woff2|png|jpg|jpeg|svg|ico|webp)$">
+        Header set Cache-Control "max-age=31536000, public, immutable"
+    </FilesMatch>
+</IfModule>
