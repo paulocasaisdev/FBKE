@@ -196,13 +196,17 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 
-# Configura o CORS permitindo preflight (OPTIONS) e os domínios do Vercel
-CORS(app, 
-     resources={r"/*": {"origins": [
-         "https://fbke-frmb.vercel.app",
-         r"https://fbke-frmb-.*\.vercel\.app",  # Autoriza URLs de preview do Vercel
-         "http://localhost:3000"
-     ]}},
-     supports_credentials=True,
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-     allow_headers=["Content-Type", "Authorization"])
+from flask import Flask
+from flask_cors import CORS
+
+app = Flask(__name__)
+
+# Permite o domínio principal, subdomínios de preview da Vercel e Localhost
+CORS(app, resources={r"/*": {
+    "origins": [
+        "https://fbke-frmb.vercel.app",
+        r"https://fbke-frmb-.*\.vercel\.app",  # Expressão regular para aceitar previews
+        "http://localhost:3000",
+        "http://localhost:5173"
+    ]
+}}, supports_credentials=True)
