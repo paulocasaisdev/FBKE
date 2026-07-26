@@ -1,10 +1,10 @@
 import os
 import sys
+
 # Adiciona o diretório atual e o diretório pai ao sys.path para permitir importações flexíveis
 app_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, app_dir)
 sys.path.insert(1, os.path.dirname(app_dir))
-
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -12,62 +12,91 @@ from dotenv import load_dotenv
 from services.supabase_service import SupabaseService
 
 # Resolve o caminho do .env de forma robusta e absoluta
-app_dir = os.path.dirname(os.path.abspath(__file__))
 env_path = os.path.join(app_dir, ".env")
 load_dotenv(dotenv_path=env_path, override=True)
 
 app = Flask(__name__)
 
+# Configuração de chave secreta para segurança das sessões/cookies
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY") or "chave-secreta-grkk-dev-12345"
+
 @app.after_request
 def disable_api_caching(response):
-    # Desativa cache para todas as rotas da API (tanto no navegador quanto no proxy Nginx da HostGator)
+    # Desativa cache para todas as rotas da API
     if request.path.startswith("/api/"):
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
-        response.headers["X-Accel-Expires"] = "0"  # Especifico para desativar cache no Nginx
+        response.headers["X-Accel-Expires"] = "0"
     return response
 
-# Configuração de chave secreta para segurança das sessões/cookies em produção
-app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY") or "chave-secreta-grkk-dev-12345"
-
-# Permite CORS apenas para as origens front-end explícitas quando credenciais são necessárias.
-# Usamos a variável de ambiente FRONTEND_ORIGINS (lista separada por vírgula) ou FRONTEND_URL.
-# Se nenhuma variável for fornecida, habilitamos um conjunto razoável de origens de desenvolvimento
-# comuns (localhost:3000 e 127.0.0.1:3000). Não use '*' quando credentials=True.
+# --- CONFIGURAÇÃO DO CORS ---
+# Monta a lista de origens autorizadas incluindo Vercel, produção e desenvolvimento
 frontend_origins_env = os.environ.get("FRONTEND_ORIGINS") or os.environ.get("FRONTEND_URL")
+origins = []
+
 if frontend_origins_env:
     if "," in frontend_origins_env:
-        origins = [o.strip() for o in frontend_origins_env.split(",") if o.strip()]
+        origins.extend([o.strip() for o in frontend_origins_env.split(",") if o.strip()])
     else:
-        origins = [frontend_origins_env.strip()]
-else:
-    origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
-# Ensure production front‑end domain is allowed
-prod_origin = "https://gojuryukaratekai.com.br"
-if prod_origin not in origins:
-    origins.append(prod_origin)
+        origins.append(frontend_origins_env.strip())
+
+# Origens fixas de Produção, Vercel e Desenvolvimento Local
+default_origins = [
+    "https://gojuryukaratekai.com.br",
+    "https://fbke-frmb.vercel.app",
+    r"https://fbke-frmb-.*\.vercel\.app",  # Regex para previews da Vercel
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173"
+]
+
+for orig in default_origins:
+    if orig not in origins:
+        origins.append(orig)
+
 CORS(
     app,
-    resources={r"/api/*": {"origins": origins}},
+    resources={r"/*": {"origins": origins}},
     supports_credentials=True,
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Cookie", "X-CSRF-Token"],
     expose_headers=["Content-Type", "Authorization", "Set-Cookie"],
     max_age=86400,
 )
 
+# Interceptador global para garantir respostas limpas no preflight (OPTIONS)
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        response = app.make_default_options_response()
+        headers = response.headers
+        origin = request.headers.get('Origin')
+        if origin:
+            headers['Access-Control-Allow-Origin'] = origin
+        headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With, Accept, Cookie, X-CSRF-Token'
+        headers['Access-Control-Allow-Credentials'] = 'true'
+        return response, 200
 
+# Garante que exceções 500 não quebrem o cabeçalho CORS no navegador
+@app.errorhandler(Exception)
+def handle_exception(e):
+    response = jsonify({"error": str(e)})
+    response.status_code = 500
+    origin = request.headers.get('Origin')
+    if origin:
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
 
 # Helper para obter o usuário logado a partir dos cookies ou cabeçalhos
 def get_current_user():
-    # 1. Tenta obter do cookie do Flask
     user_email_or_id = request.cookies.get("session_user")
     
-    # 2. Tenta obter do cookie padrão do mock (sb-mock-session)
     if not user_email_or_id:
         user_email_or_id = request.cookies.get("sb-mock-session")
         
-    # 3. Tenta obter do cabeçalho de Autorização
     if not user_email_or_id:
         auth_header = request.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):
@@ -76,17 +105,13 @@ def get_current_user():
     if not user_email_or_id:
         return None
 
-    # Se for mock, podemos buscar tanto por ID quanto por E-mail
     if SupabaseService.is_mock():
-        # Busca no profile pelo email ou ID
         profiles = SupabaseService.get_all("profiles")[0] or []
         for p in profiles:
             if p["id"] == user_email_or_id or p["email"].lower() == user_email_or_id.lower():
-                # Retorna o perfil completo carregado
                 user_data, _ = SupabaseService.get_profile_by_id(p["id"])
                 return user_data
     else:
-        # Modo real do Supabase: assume que é o ID do usuário (UID)
         user_data, _ = SupabaseService.get_profile_by_id(user_email_or_id)
         return user_data
         
@@ -152,8 +177,6 @@ def health_check():
 
 @app.route("/api/debug-version", methods=["GET"])
 def debug_version():
-    import os
-    # Tenta importar com segurança para não quebrar a rota se der import error
     try:
         from services.ai_service import has_gemini, has_gemini_sdk, GEMINI_API_KEY
     except Exception as e:
@@ -165,19 +188,14 @@ def debug_version():
     except Exception as e:
         smtp_conf = f"Erro ao importar EmailService: {str(e)}"
 
-    app_dir = os.path.dirname(os.path.abspath(__file__))
     expected_env_path = os.path.join(app_dir, ".env")
 
     return jsonify({
-        "version": "v1.0.5-diagnostico-caminhos",
+        "version": "v1.0.6-cors-vercel-fixed",
         "has_gemini_sdk": has_gemini_sdk,
         "has_gemini_configured": has_gemini,
         "gemini_key_exists": bool(GEMINI_API_KEY and GEMINI_API_KEY.strip() != "" and "sua-chave" not in GEMINI_API_KEY),
-        "gemini_key_length": len(GEMINI_API_KEY) if GEMINI_API_KEY else 0,
         "smtp_configured": smtp_conf,
-        "smtp_server": os.environ.get("SMTP_SERVER"),
-        "smtp_port": os.environ.get("SMTP_PORT"),
-        "smtp_user": os.environ.get("SMTP_USER"),
         "current_working_dir": os.getcwd(),
         "app_file_path": os.path.abspath(__file__),
         "env_file_path": expected_env_path,
@@ -188,25 +206,3 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     is_dev = os.environ.get("FLASK_ENV", "development") != "production"
     app.run(host="0.0.0.0", port=port, debug=is_dev)
-
-ALLOWED_HOSTS = ['gojuryukaratekai.com.br']
-
-from flask import Flask
-from flask_cors import CORS
-
-app = Flask(__name__)
-
-from flask import Flask
-from flask_cors import CORS
-
-app = Flask(__name__)
-
-# Permite o domínio principal, subdomínios de preview da Vercel e Localhost
-CORS(app, resources={r"/*": {
-    "origins": [
-        "https://fbke-frmb.vercel.app",
-        r"https://fbke-frmb-.*\.vercel\.app",  # Expressão regular para aceitar previews
-        "http://localhost:3000",
-        "http://localhost:5173"
-    ]
-}}, supports_credentials=True)
