@@ -190,3 +190,19 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=port, debug=is_dev)
 
 ALLOWED_HOSTS = ['gojuryukaratekai.com.br']
+
+from flask import Flask
+from flask_cors import CORS
+
+app = Flask(__name__)
+
+# Configura o CORS permitindo preflight (OPTIONS) e os domínios do Vercel
+CORS(app, 
+     resources={r"/*": {"origins": [
+         "https://fbke-frmb.vercel.app",
+         r"https://fbke-frmb-.*\.vercel\.app",  # Autoriza URLs de preview do Vercel
+         "http://localhost:3000"
+     ]}},
+     supports_credentials=True,
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization"])
