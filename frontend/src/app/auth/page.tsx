@@ -74,11 +74,20 @@ export default function EntrarPage() {
           email: 'sensei@fbke.com.br',
           tipo: 'filial',
           status: 'ativo',
+          tambem_atleta: true,
+          cpf: '987.654.321-00',
           cnpj_cpf: '12.345.678/0001-90',
-          graduacao_responsavel: '6º Dan',
-          rua: 'Av. Sete de Setembro',
+          graduacao_responsavel: '6º Dan (Faixa Preta)',
+          rua: 'Av. Sete de Setembro, 500',
           municipio: 'Salvador',
-          uf: 'BA'
+          uf: 'BA',
+          dados_atleta: {
+            nome: 'Sensei Paulo Carvalho',
+            faixa: '6º Dan (Faixa Preta)',
+            cpf: '987.654.321-00',
+            cidade: 'Salvador',
+            uf: 'BA'
+          }
         },
         atleta: {
           id: 'atleta-demo-3',
@@ -206,7 +215,7 @@ export default function EntrarPage() {
               >
                 <Building2 size={16} className="mb-1 text-sky-300" />
                 <span>Sensei ADM</span>
-                <span className="text-[9px] font-normal opacity-80">Filial / Dojo</span>
+                <span className="text-[9px] font-normal opacity-80">Filial + Atleta</span>
               </button>
 
               <button
