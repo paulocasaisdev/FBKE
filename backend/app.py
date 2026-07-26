@@ -20,6 +20,9 @@ app = Flask(__name__)
 # Configuração de chave secreta para segurança das sessões/cookies
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY") or "chave-secreta-grkk-dev-12345"
 
+# CORS simplificado e infalível para aceitar chamadas de qualquer frontend (Vercel, Localhost, etc)
+CORS(app, origins="*", supports_credentials=False)
+
 @app.after_request
 def disable_api_caching(response):
     # Desativa cache para todas as rotas da API
@@ -30,65 +33,16 @@ def disable_api_caching(response):
         response.headers["X-Accel-Expires"] = "0"
     return response
 
-# --- CONFIGURAÇÃO DO CORS ---
-# Monta a lista de origens autorizadas incluindo Vercel, produção e desenvolvimento
-frontend_origins_env = os.environ.get("FRONTEND_ORIGINS") or os.environ.get("FRONTEND_URL")
-origins = []
-
-if frontend_origins_env:
-    if "," in frontend_origins_env:
-        origins.extend([o.strip() for o in frontend_origins_env.split(",") if o.strip()])
-    else:
-        origins.append(frontend_origins_env.strip())
-
-# Origens fixas de Produção, Vercel e Desenvolvimento Local
-default_origins = [
-    "https://gojuryukaratekai.com.br",
-    "https://fbke-frmb.vercel.app",
-    r"https://fbke-frmb-.*\.vercel\.app",  # Regex para previews da Vercel
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173"
-]
-
-for orig in default_origins:
-    if orig not in origins:
-        origins.append(orig)
-
-CORS(
-    app,
-    resources={r"/*": {"origins": origins}},
-    supports_credentials=True,
-    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Cookie", "X-CSRF-Token"],
-    expose_headers=["Content-Type", "Authorization", "Set-Cookie"],
-    max_age=86400,
-)
-
-# Interceptador global para garantir respostas limpas no preflight (OPTIONS)
+# Garante que requisições de teste prévias (OPTIONS) passem livremente
 @app.before_request
 def handle_preflight():
     if request.method == "OPTIONS":
         response = app.make_default_options_response()
         headers = response.headers
-        origin = request.headers.get('Origin')
-        if origin:
-            headers['Access-Control-Allow-Origin'] = origin
+        headers['Access-Control-Allow-Origin'] = '*'
         headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
         headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With, Accept, Cookie, X-CSRF-Token'
-        headers['Access-Control-Allow-Credentials'] = 'true'
         return response, 200
-
-# Garante que exceções 500 não quebrem o cabeçalho CORS no navegador
-@app.errorhandler(Exception)
-def handle_exception(e):
-    response = jsonify({"error": str(e)})
-    response.status_code = 500
-    origin = request.headers.get('Origin')
-    if origin:
-        response.headers['Access-Control-Allow-Origin'] = origin
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
-    return response
 
 # Helper para obter o usuário logado a partir dos cookies ou cabeçalhos
 def get_current_user():
@@ -191,7 +145,7 @@ def debug_version():
     expected_env_path = os.path.join(app_dir, ".env")
 
     return jsonify({
-        "version": "v1.0.6-cors-vercel-fixed",
+        "version": "v1.0.7-cors-global-ready",
         "has_gemini_sdk": has_gemini_sdk,
         "has_gemini_configured": has_gemini,
         "gemini_key_exists": bool(GEMINI_API_KEY and GEMINI_API_KEY.strip() != "" and "sua-chave" not in GEMINI_API_KEY),
