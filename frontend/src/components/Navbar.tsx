@@ -42,36 +42,7 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 font-sans shadow-sm">
-      {/* TOPBAR INFORMATIVA & REDES SOCIAIS */}
-      <div className="bg-[#002B7F] text-white text-[11px] font-medium py-2 px-4 md:px-8 border-b border-blue-900/40">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1.5 text-blue-100">
-              <span className="w-2 h-2 rounded-full bg-[#CE1126] animate-pulse"></span>
-              Filiada à Confederação Brasileira de Karatê & IOGKF
-            </span>
-          </div>
-
-          <div className="flex items-center gap-6">
-            {/* Redes Sociais */}
-            <div className="flex items-center gap-3 border-r border-blue-800/80 pr-5">
-              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="text-blue-200 hover:text-white transition">
-                <Instagram size={14} />
-              </a>
-              <a href="https://facebook.com" target="_blank" rel="noreferrer" className="text-blue-200 hover:text-white transition">
-                <Facebook size={14} />
-              </a>
-            </div>
-
-            <div className="hidden sm:flex items-center gap-4 text-blue-100">
-              <Link href="/transparencia" className="hover:text-white transition">Transparência</Link>
-              <Link href="/eventos" className="hover:text-white transition">Calendário 2026</Link>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* BARRA DE NAVEGAÇÃO PRINCIPAL */}
+      {/* BARRA DE NAVEGAÇÃO PRINCIPAL (TopBar superior removida a pedido) */}
       <nav className="bg-white/95 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
           
@@ -154,8 +125,30 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Botões de Ação: Associe-se & Área Restrita */}
+          {/* Botões de Ação: Redes Sociais, Associe-se & Área Restrita */}
           <div className="hidden lg:flex items-center gap-3">
+            {/* Ícones de Redes Sociais reposicionados no Header */}
+            <div className="flex items-center gap-1.5 border-r border-slate-200 pr-3">
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noreferrer"
+                title="Instagram FBKE"
+                className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600 hover:text-white hover:bg-gradient-to-tr hover:from-amber-500 hover:via-rose-500 hover:to-purple-600 transition shadow-2xs"
+              >
+                <Instagram size={15} />
+              </a>
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noreferrer"
+                title="Facebook FBKE"
+                className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600 hover:text-white hover:bg-[#1877F2] transition shadow-2xs"
+              >
+                <Facebook size={15} />
+              </a>
+            </div>
+
             {/* Dropdown Associe-se */}
             <div className="relative" ref={assocRef}>
               <button
@@ -233,6 +226,15 @@ export default function Navbar() {
               <Link href="/auth" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center gap-1.5 bg-[#002B7F] text-white py-2.5 rounded-xl text-xs font-bold">
                 <Lock size={14} /> Entrar
               </Link>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-center gap-3">
+              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="p-2 rounded-xl bg-slate-100 text-slate-700 flex items-center gap-1.5 text-xs font-bold">
+                <Instagram size={16} /> Instagram
+              </a>
+              <a href="https://facebook.com" target="_blank" rel="noreferrer" className="p-2 rounded-xl bg-slate-100 text-slate-700 flex items-center gap-1.5 text-xs font-bold">
+                <Facebook size={16} /> Facebook
+              </a>
             </div>
           </div>
         )}

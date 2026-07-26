@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
@@ -77,11 +77,14 @@ const eventosInscricao = [
 
 // Carrossel de Parceiros & Entidades
 const parceiros = [
-  { nome: 'IOGKF Brasil', sigla: 'IOGKF', desc: 'Chancela Internacional' },
+  { nome: 'IOGKF International', sigla: 'IOGKF', desc: 'Chancela Internacional' },
   { nome: 'Confederação Brasileira de Karatê', sigla: 'CBK', desc: 'Entidade Nacional' },
   { nome: 'SUDESB', sigla: 'SUDESB', desc: 'Governo do Estado da Bahia' },
   { nome: 'Conselho Estadual de Esportes', sigla: 'CEE-BA', desc: 'Homologação Estadual' },
+  { nome: 'World Karate Federation', sigla: 'WKF', desc: 'Chancela Olímpica Mundial' },
+  { nome: 'Federação Baiana de Karate', sigla: 'FBKE', desc: 'Órgão Oficial da Bahia' },
   { nome: 'Associação Baiana de Dojos', sigla: 'ABD', desc: 'Filiada Oficial' },
+  { nome: 'Comitê Olímpico do Brasil', sigla: 'COB', desc: 'Apoio Esportivo' },
 ];
 
 export default function HomePage() {
@@ -319,24 +322,29 @@ export default function HomePage() {
         {/* ================= CARROSSEL DINÂMICO DE PARCEIROS & FILIADOS ================= */}
         <section className="py-14 bg-white border-y border-slate-200 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 text-center mb-8">
-            <p className="text-[11px] font-extrabold uppercase tracking-widest text-[#002B7F]">Chancela & Apoio Institucional</p>
-            <h3 className="text-xl font-bold text-slate-900 mt-1">Parceiros, Confederações e Entidades Filiadas</h3>
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-blue-50 text-[#002B7F] border border-blue-200 text-[10px] font-black uppercase tracking-widest mb-2">
+              <span className="w-2 h-2 rounded-full bg-[#CE1126] animate-ping" /> Chancela & Apoio Institucional
+            </span>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Parceiros, Confederações e Entidades Filiadas</h3>
+            <p className="text-xs text-slate-500 mt-1">Homologação oficial e órgãos reguladores do Karatê-do</p>
           </div>
 
-          {/* Faixa Deslizante */}
-          <div className="flex gap-6 justify-center flex-wrap max-w-7xl mx-auto px-4">
-            {parceiros.map((parc, index) => (
-              <div
-                key={index}
-                className="bg-slate-50 border border-slate-200 rounded-2xl p-5 min-w-[200px] max-w-[240px] text-center shadow-sm hover:border-[#002B7F] transition"
-              >
-                <div className="w-12 h-12 rounded-xl bg-[#002B7F] text-white font-black text-sm flex items-center justify-center mx-auto mb-3 border-b-2 border-[#CE1126]">
-                  {parc.sigla}
+          {/* Faixa Deslizante Infinita com Movimento Contínuo */}
+          <div className="relative w-full overflow-hidden py-4 bg-slate-50/50 border-y border-slate-100">
+            <div className="animate-marquee gap-6">
+              {[...parceiros, ...parceiros].map((parc, index) => (
+                <div
+                  key={`${parc.sigla}-${index}`}
+                  className="bg-white border border-slate-200/90 rounded-2xl p-5 min-w-[220px] max-w-[250px] text-center shadow-xs hover:shadow-md hover:border-[#002B7F] hover:-translate-y-1 transition duration-300 cursor-pointer select-none"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#002B7F] to-slate-900 text-white font-black text-xs flex items-center justify-center mx-auto mb-3 border-b-2 border-[#CE1126] shadow-xs">
+                    {parc.sigla}
+                  </div>
+                  <p className="text-xs font-bold text-slate-900 truncate">{parc.nome}</p>
+                  <p className="text-[10px] font-semibold text-slate-500 mt-0.5">{parc.desc}</p>
                 </div>
-                <p className="text-xs font-bold text-slate-900">{parc.nome}</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">{parc.desc}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 

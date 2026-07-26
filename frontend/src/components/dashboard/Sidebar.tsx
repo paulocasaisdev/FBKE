@@ -61,6 +61,7 @@ const menuConfig: Record<UserRole, MenuItem[]> = {
     { label: 'Eventos', href: '/eventos-dash', icon: Calendar },
     { label: 'Notícias', href: '/noticias', icon: FileText },
     { label: 'Exames de Graduação', href: '/exames', icon: Award },
+    { label: 'Certificados Matriz', href: '/certificados', icon: Award },
     { label: 'Grade Curricular', href: '/curriculo', icon: BookOpen },
     { label: 'Ranking Interno', href: '/ranking', icon: Trophy },
     { label: 'Financeiro', href: '/financeiro', icon: DollarSign },

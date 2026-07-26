@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { ShieldCheck, ShieldAlert, Loader2, ArrowLeft, Calendar, FileText } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Loader2, ArrowLeft, Calendar, FileText, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 interface CertificadoData {
   codigo_validacao: string;
@@ -11,16 +12,24 @@ interface CertificadoData {
   atleta_nome: string;
   atleta_faixa: string;
   filial_nome: string;
+  atleta_id?: string;
+  filial_id?: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
 function ValidarCertificadoContent() {
   const searchParams = useSearchParams();
-  const codigo = searchParams.get('codigo') || '';
+  const codigo = searchParams.get('codigo') || searchParams.get('hash') || '';
+  const { usuario, isAdmin } = useAuth();
   const [certificado, setCertificado] = useState<CertificadoData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const podeBaixarSegundaVia = isAdmin ||
+    (usuario && certificado?.atleta_id && String(usuario.id) === String(certificado.atleta_id)) ||
+    (usuario && certificado?.filial_id && String(usuario.id) === String(certificado.filial_id)) ||
+    (usuario && usuario.nome && certificado?.atleta_nome && usuario.nome.toLowerCase() === certificado.atleta_nome.toLowerCase());
 
   useEffect(() => {
     if (!codigo) {
@@ -97,15 +106,27 @@ function ValidarCertificadoContent() {
               </div>
               <div>
                 <p className="text-xs font-bold text-emerald-400 font-body">Documento Verificado Online ✅</p>
-                <p className="text-[10px] text-emerald-500/80 mt-0.5 font-body">Certificado autêntico registrado no sistema oficial da GRKK.</p>
+                <p className="text-[10px] text-emerald-500/80 mt-0.5 font-body">Dados de homologação oficial consultados com sucesso.</p>
               </div>
             </div>
-            <button 
-              onClick={() => window.print()}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-all hover:shadow-lg hover:-translate-y-0.5 shrink-0 cursor-pointer"
-            >
-              <FileText size={14} /> Imprimir / Salvar PDF
-            </button>
+
+            {/* Restrição de Download / Impressão de 2a Via */}
+            {podeBaixarSegundaVia ? (
+              <button 
+                onClick={() => window.print()}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-all hover:shadow-lg hover:-translate-y-0.5 shrink-0 cursor-pointer"
+              >
+                <FileText size={14} /> Imprimir / Salvar 2ª Via PDF
+              </button>
+            ) : (
+              <div className="flex items-center gap-2 text-[11px] text-amber-300 bg-amber-950/40 border border-amber-800/50 px-3.5 py-2 rounded-xl font-bold">
+                <Lock size={14} className="shrink-0 text-amber-400" />
+                <span>Impressão da 2ª Via restrita ao aluno, Sensei ou Admin.</span>
+                <Link href="/auth" className="underline text-white font-extrabold ml-1 hover:text-amber-200">
+                  Entrar
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Premium Certificate Frame */}
