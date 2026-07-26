@@ -19,4 +19,6 @@ services:
         value: production
       - key: PYTHONUNBUFFERED
         value: 1
+      - key: FRONTEND_ORIGINS
+        value: https://gojuryukaratekai.com.br,https://fbke-frmb.vercel.app
 
