@@ -12,12 +12,12 @@ def get_cookie_settings(host: str):
     if "localhost" not in host and "127.0.0.1" not in host:
         secure_cookie = True
         samesite_val = "None"
-            parts = host.split(".")
-            if len(parts) >= 2:
-                if len(parts) >= 3 and parts[-2] in ["com", "org", "net", "edu", "gov", "mil"]:
-                    cookie_domain = "." + ".".join(parts[-3:])
-                else:
-                    cookie_domain = "." + ".".join(parts[-2:])
+        parts = host.split(".")
+        if len(parts) >= 2:
+            if len(parts) >= 3 and parts[-2] in ["com", "org", "net", "edu", "gov", "mil"]:
+                cookie_domain = "." + ".".join(parts[-3:])
+            else:
+                cookie_domain = "." + ".".join(parts[-2:])
     return cookie_domain, secure_cookie, samesite_val
 
 def create_auth_routes(app: Flask):
@@ -100,12 +100,12 @@ def create_auth_routes(app: Flask):
             if "localhost" not in host and "127.0.0.1" not in host:
                 secure_cookie = True
                 samesite_val = "None"
-                    parts = host.split(".")
-                    if len(parts) >= 2:
-                        if len(parts) >= 3 and parts[-2] in ["com", "org", "net", "edu", "gov", "mil"]:
-                            cookie_domain = "." + ".".join(parts[-3:])
-                        else:
-                            cookie_domain = "." + ".".join(parts[-2:])
+                parts = host.split(".")
+                if len(parts) >= 2:
+                    if len(parts) >= 3 and parts[-2] in ["com", "org", "net", "edu", "gov", "mil"]:
+                        cookie_domain = "." + ".".join(parts[-3:])
+                    else:
+                        cookie_domain = "." + ".".join(parts[-2:])
 
             response = make_response(jsonify({"autenticado": False, "erro": "Conta inativa."}), 200)
             response.delete_cookie("session_user", domain=cookie_domain, secure=secure_cookie, samesite=samesite_val)
