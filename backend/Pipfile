@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "==3.0.3"
+flask-cors = "==4.0.1"
+supabase = "==2.5.0"
+python-dotenv = "==1.0.1"
+pytest = "==8.2.1"
+google-generativeai = "==0.8.3"
+flup = "==1.0.3"
+reportlab = "==4.2.2"
+gunicorn = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.14"
