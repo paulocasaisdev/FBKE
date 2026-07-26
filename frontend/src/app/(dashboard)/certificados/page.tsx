@@ -72,10 +72,10 @@ export default function CertificadosPage() {
     data_jp: '二〇二六年 七月二十五日',
     sensei_1_cargo_jp: '主席師範',
     sensei_1_nome_jp: '東恩納盛男',
-    sensei_1_nome_pt: 'Shihan Paulo Casais - 7º Dan (Presidente FBKE)',
+    sensei_1_nome_pt: 'Paulo Casais - 7º Dan (Presidente FBKE)',
     sensei_2_cargo_jp: '技術顧問',
     sensei_2_nome_jp: '宮城安一',
-    sensei_2_nome_pt: 'Sensei Miyagi An\'ichi - Consultor Técnico',
+    sensei_2_nome_pt: 'Sensei Paulo Carvalho - Consultor Técnico',
     exibir_hanko: true,
     modo_exibicao: 'bilingue' // 'bilingue' | 'japones' | 'portugues'
   });
