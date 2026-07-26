@@ -110,13 +110,13 @@ def create_documentos_assinados_routes(app: Flask):
             try:
                 from services import whatsapp_service
                 msg = (
-                    f"📝 *GRKK — Solicitação de Assinatura*\n\n"
+                    f"📝 *Portal FBKE — Solicitação de Assinatura*\n\n"
                     f"Olá, *{atleta.get('nome')}*!\n"
                     f"Foi emitida uma solicitação para assinatura digital do documento:\n"
                     f"👉 *{titulo}*.\n\n"
                     f"Por favor, acesse a aba 'Documentos' no portal para assinar usando sua conta *Gov.br*:\n"
-                    f"🔗 https://gojuryukaratekai.com.br/documentos\n\n"
-                    f"_Goju-Ryu Karatê-Kai_"
+                    f"🔗 https://fbke-frmb.vercel.app/documentos\n\n"
+                    f"_Portal FBKE_"
                 )
                 whatsapp_service.enviar_mensagem(telefone, msg)
             except Exception as ex:

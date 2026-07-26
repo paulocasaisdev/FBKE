@@ -99,15 +99,15 @@ export default function HomePage() {
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans selection:bg-[#CE1126] selection:text-white">
       <Navbar />
 
-      <main className="flex-1 pt-28">
+      <main className="flex-1">
 
         {/* ================= HERO SECTION COM BANNERS E DESTAQUES ================= */}
-        <section className="relative bg-gradient-to-b from-blue-950 via-[#002B7F] to-slate-900 text-white py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <section className="relative bg-gradient-to-b from-blue-950 via-[#002B7F] to-slate-900 text-white min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden flex items-center">
           {/* Elementos sutis da bandeira da Bahia */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-[#CE1126]/20 rounded-full blur-3xl pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-          <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="max-w-7xl mx-auto w-full relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
             {/* Coluna Esquerda: Chamada Principal */}
             <div className="lg:col-span-7 space-y-6">

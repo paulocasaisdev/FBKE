@@ -29,7 +29,7 @@ def disable_api_caching(response):
     return response
 
 # Configuração de chave secreta para segurança das sessões/cookies em produção
-app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY") or "chave-secreta-grkk-dev-12345"
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY") or "chave-secreta-fbke-dev-12345"
 
 # Permite CORS apenas para as origens front-end explícitas quando credenciais são necessárias.
 # Usamos a variável de ambiente FRONTEND_ORIGINS (lista separada por vírgula) ou FRONTEND_URL.
@@ -45,7 +45,6 @@ else:
     origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
 # Ensure production front‑end domains are always allowed
 for prod_origin in [
-    "https://gojuryukaratekai.com.br",
     "https://fbke-frmb.vercel.app",
 ]:
     if prod_origin not in origins:
@@ -150,7 +149,7 @@ def health_check():
     return jsonify({
         "status": "healthy",
         "mock_mode": SupabaseService.is_mock(),
-        "message": "API do Goju-Ryu Karate Kai está rodando com sucesso!"
+        "message": "API do Portal FBKE está rodando com sucesso!"
     }), 200
 
 @app.route("/api/debug-version", methods=["GET"])
@@ -192,4 +191,4 @@ if __name__ == "__main__":
     is_dev = os.environ.get("FLASK_ENV", "development") != "production"
     app.run(host="0.0.0.0", port=port, debug=is_dev)
 
-ALLOWED_HOSTS = ['gojuryukaratekai.com.br']
+ALLOWED_HOSTS = ['fbke-frmb.vercel.app']

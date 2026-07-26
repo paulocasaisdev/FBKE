@@ -1,7 +1,7 @@
-# Arquivo de configuração Render.com para o backend do Goju-Ryu Karate Kai (quando apontado diretamente para a pasta backend)
+# Arquivo de configuração Render.com para o backend do Portal FBKE (quando apontado diretamente para a pasta backend)
 services:
   - type: web
-    name: grkk
+    name: fbke
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
@@ -20,5 +20,5 @@ services:
       - key: PYTHONUNBUFFERED
         value: 1
       - key: FRONTEND_ORIGINS
-        value: https://gojuryukaratekai.com.br,https://fbke-frmb.vercel.app
+        value: https://fbke-frmb.vercel.app
 

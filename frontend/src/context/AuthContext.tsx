@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (valAutoriza !== undefined) u.dados_atleta.autoriza_uso_imagem = valAutoriza;
       }
 
-      const saved = typeof window !== 'undefined' ? localStorage.getItem('grkk_perfil_ativo') : null;
+      const saved = typeof window !== 'undefined' ? localStorage.getItem('fbke_perfil_ativo') : null;
       const ativo = saved === 'atleta' ? 'atleta' : 'filial';
       setPerfilAtivo(ativo);
       setTipo(ativo);
@@ -185,7 +185,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }) : prev);
 
     if (typeof window !== 'undefined') {
-      localStorage.setItem('grkk_perfil_ativo', novo);
+      localStorage.setItem('fbke_perfil_ativo', novo);
     }
   }, [usuario, perfilAtivo]);
 

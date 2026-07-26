@@ -7,7 +7,7 @@ Em mock, mensagens são apenas logadas no console — sem dependência externa.
 Para ativar em produção, defina no .env:
   EVOLUTION_API_URL=https://sua-evolution-api.com
   EVOLUTION_API_KEY=sua_chave_aqui
-  EVOLUTION_INSTANCE=grkk_bot
+  EVOLUTION_INSTANCE=fbke_bot
 
 Como instalar a Evolution API (Docker):
   docker run -d --name evolution-api \\
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 EVOLUTION_API_URL = os.environ.get("EVOLUTION_API_URL", "").rstrip("/")
 EVOLUTION_API_KEY = os.environ.get("EVOLUTION_API_KEY", "")
-EVOLUTION_INSTANCE = os.environ.get("EVOLUTION_INSTANCE", "grkk_bot")
+EVOLUTION_INSTANCE = os.environ.get("EVOLUTION_INSTANCE", "fbke_bot")
 
 
 def _is_mock() -> bool:
@@ -111,8 +111,8 @@ def msg_vencimento_proximo(nome: str, valor: float, data_venc: str) -> str:
         f"👋 Olá, *{nome}*!\n\n"
         f"🔔 Lembrete: sua mensalidade de *R$ {valor:.2f}* vence em *3 dias* ({data_venc}).\n\n"
         f"Para pagar, acesse o portal:\n"
-        f"🔗 https://gojuryukaratekai.com.br/financeiro\n\n"
-        f"_Goju-Ryu Karatê-Kai_"
+        f"🔗 https://fbke-frmb.vercel.app/financeiro\n\n"
+        f"_Portal FBKE_"
     )
 
 
@@ -121,8 +121,8 @@ def msg_exame_aprovado(nome: str, faixa_nova: str) -> str:
         f"🥋 Parabéns, *{nome}*!\n\n"
         f"✅ Você foi *APROVADO(A)* para a graduação de *{faixa_nova}*!\n\n"
         f"Seu certificado estará disponível em breve no portal:\n"
-        f"🔗 https://gojuryukaratekai.com.br/home\n\n"
-        f"*OSU!* 🙏\n_Goju-Ryu Karatê-Kai_"
+        f"🔗 https://fbke-frmb.vercel.app/home\n\n"
+        f"*OSU!* 🙏\n_Portal FBKE_"
     )
 
 
@@ -131,7 +131,7 @@ def msg_exame_reprovado(nome: str, faixa_pretendida: str) -> str:
         f"🥋 Olá, *{nome}*.\n\n"
         f"Infelizmente, desta vez você *não foi aprovado(a)* para *{faixa_pretendida}*.\n\n"
         f"Continue treinando! Temos certeza que na próxima você conseguirá. 💪\n\n"
-        f"*OSU!* 🙏\n_Goju-Ryu Karatê-Kai_"
+        f"*OSU!* 🙏\n_Portal FBKE_"
     )
 
 
@@ -142,8 +142,8 @@ def msg_novo_aviso(titulo: str, conteudo: str) -> str:
         f"*{titulo}*\n\n"
         f"{resumo}\n\n"
         f"Acesse o portal para ver mais:\n"
-        f"🔗 https://gojuryukaratekai.com.br/home\n\n"
-        f"_Goju-Ryu Karatê-Kai_"
+        f"🔗 https://fbke-frmb.vercel.app/home\n\n"
+        f"_Portal FBKE_"
     )
 
 
