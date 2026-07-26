@@ -4,7 +4,27 @@ import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { ArrowLeft, Calendar, Shield, User, FileText, Printer, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, Shield, User, FileText, Printer, CheckCircle, Clock, Award, Download } from 'lucide-react';
+
+function calcularDiasUteisDecorridos(dataIso?: string): number {
+  if (!dataIso) return 7;
+  try {
+    const data = new Date(dataIso);
+    const hoje = new Date();
+    let count = 0;
+    const cur = new Date(data.getTime());
+    while (cur < hoje) {
+      const day = cur.getDay();
+      if (day !== 0 && day !== 6) {
+        count++;
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+    return count;
+  } catch {
+    return 7;
+  }
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
@@ -141,6 +161,44 @@ export default function BoletimExameClient({ params }: { params: Promise<{ inscr
           Imprimir Boletim
         </button>
       </div>
+
+      {/* Banner de Emissão de Certificado Matriz Oficial (Exibido para Aprovados) */}
+      {c.status === 'aprovado' && (
+        <div className="p-5 bg-gradient-to-r from-emerald-50 via-slate-50 to-blue-50 border border-emerald-200/90 rounded-3xl space-y-3 print:hidden shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 bg-[#002B7F] text-white rounded-2xl shrink-0 shadow-xs mt-0.5">
+                <Award size={20} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    Candidato Aprovado
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                    <Clock size={11} /> Atualização de Matriz: até 7 dias úteis
+                  </span>
+                </div>
+                <h4 className="text-sm font-black text-slate-900 mt-1">Emissão Automática do Certificado Oficial GRKK / FBKE</h4>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  {calcularDiasUteisDecorridos(c.avaliado_em || ex.data_exame) >= 7 || isAdmin ? (
+                    <span className="text-emerald-700 font-bold">✓ Homologação técnica e atualização da matriz concluídas. O certificado está liberado para emissão e download.</span>
+                  ) : (
+                    <span className="text-slate-600">⏳ Cadastro e atualização da matriz oficial em andamento (Prazo de até 7 dias úteis).</span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href={`/certificados?atleta_id=${c.id}&nome=${encodeURIComponent(c.atleta_nome)}&faixa=${encodeURIComponent(c.graduacao_pretendida)}`}
+              className="h-11 px-5 inline-flex items-center justify-center gap-2 bg-[#CE1126] hover:bg-red-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer shadow-sm shrink-0 whitespace-nowrap"
+            >
+              <Download size={16} /> Emitir & Baixar Certificado
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Cartão do Boletim */}
       <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-sm relative overflow-hidden space-y-6 print:border-none print:shadow-none print:bg-white print:text-black">

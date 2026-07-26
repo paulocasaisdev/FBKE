@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useSearchParams } from 'next/navigation';
 import { 
   Award, Printer, Save, RefreshCw, CheckCircle2, User, 
-  Calendar, FileText, Globe, Layers, Download, Sparkles, Sliders
+  Calendar, FileText, Globe, Layers, Download, Sparkles, Sliders, Clock
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
@@ -22,24 +23,20 @@ function HankoOfficialSeal({ className = "w-24 h-24" }: { className?: string }) 
   return (
     <svg viewBox="0 0 200 200" className={`${className} filter drop-shadow-xs select-none pointer-events-none`}>
       <defs>
-        {/* Curvas circulares para texto no carimbo */}
         <path id="hankoTopPath" d="M 30,100 A 70,70 0 1,1 170,100" />
         <path id="hankoBottomPath" d="M 170,100 A 70,70 0 0,1 30,100" />
       </defs>
       
-      {/* Círculo externo duplo com efeito carimbo envelhecido */}
       <circle cx="100" cy="100" r="92" fill="none" stroke="#B91C1C" strokeWidth="6" opacity="0.9" />
       <circle cx="100" cy="100" r="76" fill="none" stroke="#B91C1C" strokeWidth="2.5" opacity="0.85" />
       <circle cx="100" cy="100" r="48" fill="none" stroke="#B91C1C" strokeWidth="1.5" opacity="0.75" />
 
-      {/* Texto Superior em Katakana: パウロ・カサイス */}
       <text fill="#B91C1C" fontSize="19" fontWeight="900" fontFamily="'Yu Mincho', 'MS Mincho', 'Noto Serif JP', serif" letterSpacing="3.5">
         <textPath href="#hankoTopPath" startOffset="50%" textAnchor="middle">
           パウロ・カサイス
         </textPath>
       </text>
 
-      {/* Texto Inferior em Kanji: 剛柔流空手道 */}
       <text fill="#B91C1C" fontSize="18" fontWeight="900" fontFamily="'Yu Mincho', 'MS Mincho', 'Noto Serif JP', serif" letterSpacing="4.5">
         <textPath href="#hankoBottomPath" startOffset="50%" textAnchor="middle">
           剛柔流空手道
@@ -49,20 +46,25 @@ function HankoOfficialSeal({ className = "w-24 h-24" }: { className?: string }) 
   );
 }
 
-export default function CertificadosPage() {
+function CertificadosContent() {
   const { usuario, isAdmin } = useAuth();
+  const searchParams = useSearchParams();
   
+  const paramNome = searchParams.get('nome') || '';
+  const paramFaixa = searchParams.get('faixa') || '';
+  const paramId = searchParams.get('atleta_id') || '';
+
   const [atletasList, setAtletasList] = useState<AtletaOption[]>([]);
-  const [selectedAtletaId, setSelectedAtletaId] = useState('');
+  const [selectedAtletaId, setSelectedAtletaId] = useState(paramId);
   const [notif, setNotif] = useState({ type: '', msg: '' });
 
   // Dados editáveis do Certificado Matriz
   const [certData, setCertData] = useState({
     registro_n: '第 2026-047 号',
     registro_pt: 'Nº FBKE-2026-047',
-    atleta_nome_pt: 'PAULO CASAIS',
-    atleta_nome_jp: 'パウロ・カサイス',
-    graduacao_pt: '2º Dan - Nidan (Faixa Preta)',
+    atleta_nome_pt: paramNome ? paramNome.toUpperCase() : 'PAULO CASAIS',
+    atleta_nome_jp: paramNome ? converterParaKatakana(paramNome) : 'パウロ・カサイス',
+    graduacao_pt: paramFaixa ? `${paramFaixa} (Graduação Oficial)` : '2º Dan - Nidan (Faixa Preta)',
     graduacao_jp: '二段 允許ス',
     estilo_pt: 'Karate-do Goju-Ryu',
     estilo_jp: '剛柔流空手道',
@@ -77,7 +79,7 @@ export default function CertificadosPage() {
     sensei_2_nome_jp: '宮城安一',
     sensei_2_nome_pt: 'Sensei Paulo Carvalho - Consultor Técnico',
     exibir_hanko: true,
-    modo_exibicao: 'bilingue' // 'bilingue' | 'japones' | 'portugues'
+    modo_exibicao: 'bilingue'
   });
 
   useEffect(() => {
@@ -95,7 +97,16 @@ export default function CertificadosPage() {
     carregarAtletas();
   }, []);
 
-  // Preenchimento automático ao selecionar um atleta cadastrado
+  function converterParaKatakana(nome: string) {
+    if (!nome) return 'パウロ・カサイス';
+    const n = nome.toLowerCase();
+    if (n.includes('paulo')) return 'パウロ・カサイス';
+    if (n.includes('lucas')) return 'ルーカス・アルメイダ';
+    if (n.includes('pedro')) return 'ペドロ・オリベイラ';
+    if (n.includes('mariana')) return 'マリアナ・ソウザ';
+    return 'パウロ・カサイス';
+  }
+
   const handleSelectAtleta = (id: string) => {
     setSelectedAtletaId(id);
     const atl = atletasList.find(a => a.id === id);
@@ -108,17 +119,6 @@ export default function CertificadosPage() {
         registro_pt: atl.registro_federacao ? `Nº ${atl.registro_federacao}` : prev.registro_pt
       }));
     }
-  };
-
-  // Função transliteradora auxiliar simplificada de nomes latinos para Katakana
-  const converterParaKatakana = (nome: string) => {
-    if (!nome) return 'パウロ・カサイス';
-    const n = nome.toLowerCase();
-    if (n.includes('paulo')) return 'パウロ・カサイス';
-    if (n.includes('lucas')) return 'ルーカス・アルメイダ';
-    if (n.includes('pedro')) return 'ペドロ・オリベイラ';
-    if (n.includes('mariana')) return 'マリアナ・ソウザ';
-    return 'パウロ・カサイス';
   };
 
   const handleImprimir = () => {
@@ -140,7 +140,7 @@ export default function CertificadosPage() {
             <Sparkles size={14} className="animate-pulse" /> Matriz Oficial de Certificados & Diplomas GRKK
           </span>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Emissor de Certificado Tradicional</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Matriz oficial editável em Português e Japonês (Kanji/Katakana) com Chancery Hanko autêntico</p>
+          <p className="text-xs text-slate-500 mt-0.5">Emissão automática e matriz oficial em Português e Japonês com Hanko autêntico (Prazo de até 7 dias úteis de atualização)</p>
         </div>
 
         {/* Botões de Ação */}
@@ -156,8 +156,21 @@ export default function CertificadosPage() {
             onClick={handleImprimir}
             className="h-11 px-5 inline-flex items-center justify-center gap-2 bg-[#CE1126] hover:bg-red-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm cursor-pointer"
           >
-            <Printer size={18} /> Imprimir Certificado Matriz
+            <Printer size={18} /> Imprimir / Baixar Certificado
           </button>
+        </div>
+      </div>
+
+      {/* Regra de Prazo de 7 dias úteis */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-amber-50 border border-blue-200 text-slate-800 text-xs flex items-center justify-between gap-3 print:hidden">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-[#002B7F] text-white rounded-xl">
+            <Clock size={16} />
+          </div>
+          <div>
+            <p className="font-extrabold text-[#002B7F] uppercase tracking-wider">Regra de Emissão e Atualização de Matriz</p>
+            <p className="text-slate-600 mt-0.5">A emissão do certificado é efetuada automaticamente após o candidato ser aprovado e decorrido o período de cadastro de até 7 dias úteis.</p>
+          </div>
         </div>
       </div>
 
@@ -442,5 +455,17 @@ export default function CertificadosPage() {
       `}</style>
 
     </main>
+  );
+}
+
+export default function CertificadosPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-10 text-center text-slate-500 text-xs">
+        Carregando emissor de certificados...
+      </div>
+    }>
+      <CertificadosContent />
+    </Suspense>
   );
 }
