@@ -14,7 +14,7 @@ def create_atleta_routes(app: Flask):
         senha = data.get("senha")
         aceita_termos = data.get("aceita_termos")
         if not aceita_termos:
-            return jsonify({"error": "É necessário aceitar os Termos de Serviço e Aviso de Privacidade do Portal GRKK"}), 400
+            return jsonify({"error": "É necessário aceitar os Termos de Serviço e Aviso de Privacidade do Portal FBKE"}), 400
 
         if not nome or not email or not telefone:
             return jsonify({"error": "Nome, e-mail e telefone são obrigatórios"}), 400

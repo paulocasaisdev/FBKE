@@ -52,7 +52,7 @@ def create_filial_routes(app: Flask):
         aceita_termos = data.get("aceita_termos")
 
         if not aceita_termos:
-            return jsonify({"error": "É necessário aceitar os Termos de Serviço e Aviso de Privacidade do Portal GRKK"}), 400
+            return jsonify({"error": "É necessário aceitar os Termos de Serviço e Aviso de Privacidade do Portal FBKE"}), 400
 
         if not nome or not email:
             return jsonify({"error": "Nome e e-mail da filial são obrigatórios"}), 400
