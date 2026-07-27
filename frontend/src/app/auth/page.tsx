@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Eye, EyeOff, Lock, Mail, ArrowRight, UserPlus, Building2 } from 'lucide-react';
-import DemoLoginButtons from '@/components/DemoLoginButtons';
 
 export default function EntrarPage() {
   const router = useRouter();
