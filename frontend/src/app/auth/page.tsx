@@ -34,14 +34,14 @@ export default function EntrarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-[#CE1126] selection:text-white">
+    <div className="h-screen overflow-hidden bg-slate-50 text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-[#CE1126] selection:text-white">
       
       {/* ================= LEFT DECORATIVE PANEL ================= */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-b from-blue-950 via-[#002B7F] to-slate-900 text-white justify-center items-center">
+      <div className="hidden lg:flex lg:w-1/2 h-full relative overflow-hidden bg-gradient-to-b from-blue-950 via-[#002B7F] to-slate-900 text-white justify-center items-center">
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#CE1126]/20 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="relative flex flex-col justify-center items-center text-center p-16 w-full z-10 space-y-6">
+        <div className="relative flex flex-col justify-center items-center text-center p-10 w-full z-10 space-y-5">
           <div className="w-20 h-20 rounded-2xl bg-white text-[#002B7F] font-black flex items-center justify-center text-2xl border-b-4 border-[#CE1126] shadow-xl">
             FBKE
           </div>
@@ -64,7 +64,7 @@ export default function EntrarPage() {
             Acesso restrito para atletas federados, diretores de dojos e comissão técnica homologada.
           </p>
 
-          <div className="mt-8 border border-white/20 bg-white/10 backdrop-blur-md rounded-2xl p-5 max-w-xs text-center space-y-2">
+          <div className="border border-white/20 bg-white/10 backdrop-blur-md rounded-2xl p-4 max-w-xs text-center space-y-1.5">
             <p className="text-slate-200 italic text-xs leading-relaxed">
               "Hitotsu – Dento karate o mamori hibi no tanren o okotarazu"
             </p>
@@ -76,28 +76,28 @@ export default function EntrarPage() {
       </div>
 
       {/* ================= RIGHT FORM PANEL ================= */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-slate-50">
-        <div className="w-full max-w-md space-y-.env.production.template6">
+      <div className="w-full lg:w-1/2 h-full flex items-center justify-center p-6 sm:p-8 bg-slate-50 overflow-y-auto">
+        <div className="w-full max-w-md space-y-5">
           
           <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-[#002B7F] transition">
             ← Voltar ao site principal
           </Link>
 
-          <div className="space-y-1">
+          <div className="space-y-2">
             <span className="text-[#CE1126] font-extrabold text-xs uppercase tracking-widest block">
               Área Restrita
             </span>
             <h2 className="text-3xl font-black text-slate-900 tracking-tight">
               Acessar Plataforma
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-sm text-slate-500 mt-1">
               Digite suas credenciais registradas no portal FBKE.
             </p>
           </div>
 
 
 
-          <form onSubmit={handleSubmit} className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm space-y-4">
+          <form onSubmit={handleSubmit} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-4">
             
             <div className="space-y-1.5">
               <label className="text-slate-700 text-xs font-bold uppercase tracking-wider block">E-mail</label>
@@ -153,7 +153,7 @@ export default function EntrarPage() {
             </button>
           </form>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 text-center space-y-3 shadow-xs">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 text-center space-y-2.5 shadow-xs">
             <p className="text-slate-500 text-xs font-semibold">
               Ainda não possui conta cadastrada?
             </p>
