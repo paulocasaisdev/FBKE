@@ -66,15 +66,23 @@ def create_filial_routes(app: Flask):
         if not SupabaseService.is_mock():
             try:
                 from services.supabase_service import supabase
-                user_attrs = {
+                auth_res = supabase.auth.admin.create_user({
                     "email": email,
                     "password": senha if senha else "GojuRyu123!",
-                    "email_confirm": True,
-                    "id": user_id
-                }
-                supabase.auth.admin.create_user(user_attrs)
+                    "email_confirm": True
+                })
+                if auth_res and hasattr(auth_res, 'user') and auth_res.user:
+                    user_id = str(auth_res.user.id)
             except Exception as auth_err:
-                return jsonify({"error": f"Erro ao criar conta no Supabase Auth: {str(auth_err)}"}), 400
+                err_msg = str(auth_err)
+                if "already" in err_msg.lower() or "exists" in err_msg.lower():
+                    prof_exist, _ = SupabaseService.get_all("profiles", filter_dict={"email": email})
+                    if prof_exist and len(prof_exist) > 0:
+                        user_id = str(prof_exist[0]["id"])
+                    else:
+                        return jsonify({"error": "Este e-mail já está cadastrado no sistema."}), 400
+                else:
+                    return jsonify({"error": f"Erro ao criar conta no Supabase Auth: {err_msg}"}), 400
 
         profile_item = {
             "id": user_id,
