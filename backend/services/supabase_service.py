@@ -181,6 +181,8 @@ class SupabaseService:
         else:
             try:
                 res = supabase.table(table_name).insert(item).execute()
+                if res is None:
+                    return None, "Supabase retornou resposta nula ao inserir em '{}'.".format(table_name)
                 return res.data[0] if res.data else None, None
             except Exception as e:
                 return None, str(e)
@@ -199,6 +201,8 @@ class SupabaseService:
         else:
             try:
                 res = supabase.table(table_name).update(update_data).eq("id", item_id).execute()
+                if res is None:
+                    return None, "Supabase retornou resposta nula ao atualizar '{}' id={}".format(table_name, item_id)
                 return res.data[0] if res.data else None, None
             except Exception as e:
                 return None, str(e)
