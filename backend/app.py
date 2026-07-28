@@ -17,6 +17,7 @@ env_path = os.path.join(app_dir, ".env")
 load_dotenv(dotenv_path=env_path, override=True)
 
 app = Flask(__name__)
+app.url_map.strict_slashes = False
 
 @app.after_request
 def disable_api_caching(response):
@@ -33,8 +34,7 @@ app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY") or "chave-secreta-fbke-d
 
 # Permite CORS apenas para as origens front-end explícitas quando credenciais são necessárias.
 # Usamos a variável de ambiente FRONTEND_ORIGINS (lista separada por vírgula) ou FRONTEND_URL.
-# Se nenhuma variável for fornecida, habilitamos um conjunto razoável de origens de desenvolvimento
-# comuns (localhost:3000 e 127.0.0.1:3000). Não use '*' quando credentials=True.
+# Se nenhuma variável for fornecida, habilitamos um conjunto razoável de origens de desenvolvimento.
 frontend_origins_env = os.environ.get("FRONTEND_ORIGINS") or os.environ.get("FRONTEND_URL")
 if frontend_origins_env:
     if "," in frontend_origins_env:
@@ -43,12 +43,16 @@ if frontend_origins_env:
         origins = [frontend_origins_env.strip()]
 else:
     origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
-# Ensure production front‑end domains are always allowed
+
+# Garante que todos os domínios de produção da Vercel sejam sempre permitidos
 for prod_origin in [
     "https://fbke-frmb.vercel.app",
+    "https://frontend-inky-eight-91.vercel.app",
+    r"https://.*\.vercel\.app"
 ]:
     if prod_origin not in origins:
         origins.append(prod_origin)
+
 CORS(
     app,
     resources={r"/api/*": {"origins": origins}},
