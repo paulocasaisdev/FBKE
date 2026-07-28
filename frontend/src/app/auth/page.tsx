@@ -8,11 +8,17 @@ import { Eye, EyeOff, Lock, Mail, ArrowRight, UserPlus, Building2 } from 'lucide
 
 export default function EntrarPage() {
   const router = useRouter();
-  const { loginLegado } = useAuth();
+  const { loginLegado, autenticado } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  React.useEffect(() => {
+    if (autenticado) {
+      router.push('/home');
+    }
+  }, [autenticado, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });

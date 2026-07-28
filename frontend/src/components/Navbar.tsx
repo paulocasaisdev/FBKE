@@ -6,8 +6,9 @@ import { usePathname } from 'next/navigation';
 import { 
   ChevronDown, Instagram, Facebook, Lock, UserPlus, 
   Menu, X, ShieldCheck, BookOpen, Users, Calendar, FileText,
-  User, Building2
+  User, Building2, UserCheck, LayoutDashboard, LogOut
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const institucionalLinks = [
   { label: 'A Academia', href: '/sobre', desc: 'Conheça nossa história e mestres', icon: ShieldCheck },
@@ -18,6 +19,7 @@ const institucionalLinks = [
 ];
 
 export default function Navbar() {
+  const { usuario, autenticado, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [instDropdownOpen, setInstDropdownOpen] = useState(false);
   const [assocDropdownOpen, setAssocDropdownOpen] = useState(false);
@@ -178,13 +180,32 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Login Rápido / Área Restrita */}
-            <Link
-              href="/auth"
-              className="inline-flex items-center gap-2 bg-[#002B7F] hover:bg-blue-900 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-sm transition border border-blue-800"
-            >
-              <Lock size={14} /> Área Restrita
-            </Link>
+            {/* Login Rápido / Área Restrita / Minha Área */}
+            {autenticado ? (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/home"
+                  className="inline-flex items-center gap-2 bg-[#002B7F] hover:bg-blue-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition border border-blue-800"
+                >
+                  <LayoutDashboard size={14} className="text-amber-400" />
+                  Minha Área ({usuario?.nome?.split(' ')[0] || 'Painel'})
+                </Link>
+                <button
+                  onClick={() => logout()}
+                  title="Sair da Conta"
+                  className="p-2.5 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-[#CE1126] border border-slate-200 transition cursor-pointer"
+                >
+                  <LogOut size={14} />
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/auth"
+                className="inline-flex items-center gap-2 bg-[#002B7F] hover:bg-blue-900 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-sm transition border border-blue-800"
+              >
+                <Lock size={14} /> Área Restrita
+              </Link>
+            )}
           </div>
 
           {/* Botão Mobile */}
@@ -220,12 +241,22 @@ export default function Navbar() {
             </Link>
 
             <div className="pt-2 grid grid-cols-2 gap-2">
-              <Link href="/auth/cadastro-atleta" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center gap-1.5 bg-slate-100 py-2.5 rounded-xl text-xs font-bold text-slate-800">
-                <UserPlus size={14} /> Cadastrar
-              </Link>
-              <Link href="/auth" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center gap-1.5 bg-[#002B7F] text-white py-2.5 rounded-xl text-xs font-bold">
-                <Lock size={14} /> Entrar
-              </Link>
+              {autenticado ? (
+                <>
+                  <Link href="/home" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center gap-1.5 bg-[#002B7F] text-white py-2.5 rounded-xl text-xs font-bold col-span-2">
+                    <LayoutDashboard size={14} className="text-amber-400" /> Minha Área (Dashboard)
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/auth/cadastro-atleta" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center gap-1.5 bg-slate-100 py-2.5 rounded-xl text-xs font-bold text-slate-800">
+                    <UserPlus size={14} /> Cadastrar
+                  </Link>
+                  <Link href="/auth" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center gap-1.5 bg-[#002B7F] text-white py-2.5 rounded-xl text-xs font-bold">
+                    <Lock size={14} /> Entrar
+                  </Link>
+                </>
+              )}
             </div>
 
             <div className="pt-3 border-t border-slate-100 flex items-center justify-center gap-3">
