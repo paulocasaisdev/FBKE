@@ -129,14 +129,14 @@ export default function CadastroFilialPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-[#CE1126] selection:text-white">
+    <div className="h-screen overflow-hidden bg-slate-50 text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-[#CE1126] selection:text-white">
       
       {/* ================= LEFT DECORATIVE PANEL ================= */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-b from-blue-950 via-[#002B7F] to-slate-900 text-white justify-center items-center">
+      <div className="hidden lg:flex lg:w-1/2 h-full relative overflow-hidden bg-gradient-to-b from-blue-950 via-[#002B7F] to-slate-900 text-white justify-center items-center">
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#CE1126]/20 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="relative flex flex-col justify-center items-center text-center p-16 w-full z-10 space-y-6">
+        <div className="relative flex flex-col justify-center items-center text-center p-10 w-full z-10 space-y-4">
           <div className="w-20 h-20 rounded-2xl bg-white text-[#002B7F] font-black flex items-center justify-center text-2xl border-b-4 border-[#CE1126] shadow-xl">
             FBKE
           </div>
@@ -159,7 +159,7 @@ export default function CadastroFilialPage() {
             Cadastre seu dojo, academia ou centro de treinamento e associe-se à entidade oficial do Karate Esportivo na Bahia.
           </p>
 
-          <div className="mt-8 border border-white/20 bg-white/10 backdrop-blur-md rounded-2xl p-5 max-w-xs text-center space-y-2">
+          <div className="mt-4 border border-white/20 bg-white/10 backdrop-blur-md rounded-2xl p-4 max-w-xs text-center space-y-1">
             <p className="text-slate-200 italic text-xs leading-relaxed">
               "Hitotsu – Reigi o omonzuru koto"
             </p>
@@ -171,8 +171,8 @@ export default function CadastroFilialPage() {
       </div>
 
       {/* ================= RIGHT FORM PANEL ================= */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 overflow-y-auto max-h-screen">
-        <div className="w-full max-w-md space-y-6">
+      <div className="w-full lg:w-1/2 h-full flex items-center justify-center p-4 sm:p-8 overflow-y-auto">
+        <div className="w-full max-w-md space-y-4">
           
           <Link href="/auth" className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-[#002B7F] transition">
             ← Voltar para a tela de login
@@ -190,97 +190,86 @@ export default function CadastroFilialPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="bg-white border border-slate-200 p-6 sm:p-8 rounded-3xl shadow-sm space-y-4">
+          <form onSubmit={handleSubmit} className="bg-white border border-slate-200 p-5 rounded-3xl shadow-sm space-y-3">
             
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <label className="text-slate-700 text-xs font-bold uppercase tracking-wider block">Nome do Dojo / Academia *</label>
               <div className="relative">
-                <Building2 size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Building2 size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   required
                   placeholder="Ex: Associação Baiana de Karate"
                   value={form.nome}
                   onChange={set('nome')}
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 pl-10 pr-4 py-3 rounded-xl text-xs focus:outline-none focus:border-[#002B7F] focus:ring-1 focus:ring-[#002B7F] transition"
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 pl-9 pr-4 py-2 rounded-xl text-xs focus:outline-none focus:border-[#002B7F] focus:ring-1 focus:ring-[#002B7F] transition"
                 />
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <label className="text-slate-700 text-xs font-bold uppercase tracking-wider block">E-mail Institucional *</label>
               <div className="relative">
-                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   required
                   type="email"
                   placeholder="contato@dojo.com.br"
                   value={form.email}
                   onChange={set('email')}
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 pl-10 pr-4 py-3 rounded-xl text-xs focus:outline-none focus:border-[#002B7F] focus:ring-1 focus:ring-[#002B7F] transition"
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 pl-9 pr-4 py-2 rounded-xl text-xs focus:outline-none focus:border-[#002B7F] focus:ring-1 focus:ring-[#002B7F] transition"
                 />
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <label className="text-slate-700 text-xs font-bold uppercase tracking-wider block">Telefone / WhatsApp</label>
               <div className="relative">
-                <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="tel"
                   placeholder="(71) 99999-9999"
                   value={form.telefone}
                   onChange={setFormatado('telefone', formatarTelefone)}
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 pl-10 pr-4 py-3 rounded-xl text-xs focus:outline-none focus:border-[#002B7F] focus:ring-1 focus:ring-[#002B7F] transition"
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 pl-9 pr-4 py-2 rounded-xl text-xs focus:outline-none focus:border-[#002B7F] focus:ring-1 focus:ring-[#002B7F] transition"
                 />
               </div>
             </div>
 
             {/* Senhas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
-              <div className="space-y-1.5">
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+              <div className="space-y-1">
                 <label className="text-slate-700 text-xs font-bold uppercase tracking-wider block">Senha *</label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     required
                     type={showPwd ? 'text' : 'password'}
-                    placeholder="Mínimo 6 dígitos"
+                    placeholder="Mín. 6 dígitos"
                     value={form.senha}
                     onChange={set('senha')}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 pl-10 pr-10 py-3 rounded-xl text-xs focus:outline-none focus:border-[#002B7F] focus:ring-1 focus:ring-[#002B7F] transition"
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 pl-9 pr-9 py-2 rounded-xl text-xs focus:outline-none focus:border-[#002B7F] focus:ring-1 focus:ring-[#002B7F] transition"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPwd(!showPwd)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition cursor-pointer"
-                  >
-                    {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                  <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition cursor-pointer">
+                    {showPwd ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
               </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-700 text-xs font-bold uppercase tracking-wider block">Confirmar Senha *</label>
+              <div className="space-y-1">
+                <label className="text-slate-700 text-xs font-bold uppercase tracking-wider block">Confirmar *</label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     required
                     type={showConfirmPwd ? 'text' : 'password'}
                     placeholder="Repita a senha"
                     value={form.confirmarSenha}
                     onChange={set('confirmarSenha')}
-                    className={`w-full bg-slate-50 border text-slate-900 pl-10 pr-10 py-3 rounded-xl text-xs focus:outline-none focus:border-[#002B7F] focus:ring-1 focus:ring-[#002B7F] transition ${
-                      form.confirmarSenha && form.confirmarSenha !== form.senha
-                        ? 'border-red-500'
-                        : 'border-slate-200'
+                    className={`w-full bg-slate-50 border text-slate-900 pl-9 pr-9 py-2 rounded-xl text-xs focus:outline-none focus:border-[#002B7F] focus:ring-1 focus:ring-[#002B7F] transition ${
+                      form.confirmarSenha && form.confirmarSenha !== form.senha ? 'border-red-500' : 'border-slate-200'
                     }`}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPwd(!showConfirmPwd)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition cursor-pointer"
-                  >
-                    {showConfirmPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                  <button type="button" onClick={() => setShowConfirmPwd(!showConfirmPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition cursor-pointer">
+                    {showConfirmPwd ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
               </div>
