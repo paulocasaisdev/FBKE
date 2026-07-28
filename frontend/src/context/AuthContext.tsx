@@ -40,7 +40,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = (rawApiUrl && rawApiUrl.startsWith('http')) ? rawApiUrl.replace(/\/$/, '') : '';
 
 
 async function parseJsonResponse(res: Response) {

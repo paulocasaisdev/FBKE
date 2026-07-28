@@ -7,7 +7,8 @@ import {
   Eye, EyeOff, CheckCircle2, Loader2,
 } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = (rawApiUrl && rawApiUrl.startsWith('http')) ? rawApiUrl.replace(/\/$/, '') : '';
 
 function formatarTelefone(valor: string) {
   const numeros = valor.replace(/\D/g, '').slice(0, 11);
