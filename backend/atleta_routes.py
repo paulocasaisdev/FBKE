@@ -93,17 +93,28 @@ def create_atleta_routes(app: Flask):
         atletas_db, error = SupabaseService.get_all("atletas")
         profiles_db, _ = SupabaseService.get_all("profiles")
 
+        if error:
+            print(f"Aviso ao buscar atletas: {error}")
+
         res_atletas = []
         for atl in (atletas_db or []):
-            prof = next((p for p in (profiles_db or []) if p["id"] == atl["id"]), None)
+            atl_id = str(atl.get("id", "")).lower()
+            prof = next((p for p in (profiles_db or []) if str(p.get("id", "")).lower() == atl_id), None)
+            
             if prof:
                 item = dict(prof)
                 item.update(atl)
+            else:
+                item = dict(atl)
 
-                if user.get("tipo") == "filial" and item.get("filial_id") != user["id"]:
+            # Se for perfil de filial, filtra para mostrar apenas atletas vinculados a esta filial
+            if user.get("tipo") == "filial":
+                user_id_str = str(user.get("id", "")).lower()
+                filial_id_str = str(item.get("filial_id", "")).lower()
+                if filial_id_str != user_id_str:
                     continue
 
-                res_atletas.append(item)
+            res_atletas.append(item)
 
         return jsonify({"atletas": res_atletas}), 200
 

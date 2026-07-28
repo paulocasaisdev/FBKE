@@ -145,26 +145,36 @@ class SupabaseService:
             return items, None
         else:
             try:
-                # Mapeamento de queries select para lidar com joins
                 SELECT_QUERIES = {
                     "noticias": "*, profiles(nome, avatar_url)",
-                    "atletas": "*, filiais(nome_fantasia)",
-                    # Adicione outras tabelas e seus joins aqui
                 }
                 select_query = SELECT_QUERIES.get(table_name, "*")
 
-                query = supabase.table(table_name).select(select_query)
-                
+                try:
+                    query = supabase.table(table_name).select(select_query)
+                    if filter_dict:
+                        for k, v in filter_dict.items():
+                            query = query.eq(k, v)
+                    if order_by:
+                        query = query.order(order_by, desc=not ascending)
+                    res = query.execute()
+                    if res and res.data is not None:
+                        return res.data, None
+                except Exception as inner_e:
+                    print(f"Aviso: Falha ao executar select com query '{select_query}' em '{table_name}': {inner_e}. Tentando select('*')...")
+
+                # Fallback seguro com select("*")
+                query = supabase.table(table_name).select("*")
                 if filter_dict:
                     for k, v in filter_dict.items():
                         query = query.eq(k, v)
                 if order_by:
                     query = query.order(order_by, desc=not ascending)
-                
                 res = query.execute()
-                return res.data, None
+                return (res.data if res else []), None
             except Exception as e:
-                return None, str(e)
+                print(f"Erro em get_all para tabela '{table_name}': {e}")
+                return [], str(e)
 
     @staticmethod
     def insert(table_name, item):

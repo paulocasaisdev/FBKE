@@ -35,11 +35,14 @@ def create_filial_routes(app: Flask):
 
             res_filiais = []
             for fil in (filiais_db or []):
-                prof = next((p for p in (profiles_db or []) if p["id"] == fil["id"]), None)
+                fil_id = str(fil.get("id", "")).lower()
+                prof = next((p for p in (profiles_db or []) if str(p.get("id", "")).lower() == fil_id), None)
                 if prof:
                     item = dict(prof)
                     item.update(fil)
-                    res_filiais.append(item)
+                else:
+                    item = dict(fil)
+                res_filiais.append(item)
 
             return jsonify({"filiais": res_filiais}), 200
 
