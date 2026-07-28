@@ -7,7 +7,7 @@ import {
   Eye, EyeOff, Loader2, UserCheck, CheckCircle2
 } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 function formatarTelefone(valor: string) {
   const numeros = valor.replace(/\D/g, '').slice(0, 11);
@@ -50,7 +50,9 @@ export default function CadastroAtletaPage() {
   React.useEffect(() => {
     const carregarFiliais = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/filiais/public`);
+        const res = await fetch(`${API_URL}/api/filiais/public`, {
+          credentials: 'include',
+        });
         if (res.ok) {
           const data = await res.json();
           setFiliais(data.filiais || []);
@@ -95,6 +97,7 @@ export default function CadastroAtletaPage() {
       const res = await fetch(`${API_URL}/api/atletas/public`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           nome: form.nome.trim(),
           email: form.email.trim(),

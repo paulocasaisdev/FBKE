@@ -7,7 +7,7 @@ import {
   Eye, EyeOff, CheckCircle2, Loader2,
 } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 function formatarTelefone(valor: string) {
   const numeros = valor.replace(/\D/g, '').slice(0, 11);
@@ -66,6 +66,7 @@ export default function CadastroFilialPage() {
       const res = await fetch(`${API_URL}/api/filiais`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           nome: form.nome.trim(),
           email: form.email.trim(),
