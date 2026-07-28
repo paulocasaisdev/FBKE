@@ -7,7 +7,8 @@ import {
   Eye, Mail, Phone, MapPin, CreditCard, Award, FileText, User, Printer 
 } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = (rawApiUrl && rawApiUrl.startsWith('http')) ? rawApiUrl.replace(/\/$/, '') : '';
 
 interface Filial {
   id: string;

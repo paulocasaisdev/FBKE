@@ -12,12 +12,6 @@ def get_cookie_settings(host: str):
     if "localhost" not in host and "127.0.0.1" not in host:
         secure_cookie = True
         samesite_val = "None"
-        parts = host.split(".")
-        if len(parts) >= 2:
-            if len(parts) >= 3 and parts[-2] in ["com", "org", "net", "edu", "gov", "mil"]:
-                cookie_domain = "." + ".".join(parts[-3:])
-            else:
-                cookie_domain = "." + ".".join(parts[-2:])
     return cookie_domain, secure_cookie, samesite_val
 
 def create_auth_routes(app: Flask):

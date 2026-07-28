@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { UserCheck, ShieldAlert, Loader2, Search, CheckCircle2, User, Trophy, Mail, Phone, Printer, FileText, X } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = (rawApiUrl && rawApiUrl.startsWith('http')) ? rawApiUrl.replace(/\/$/, '') : '';
 
 interface Atleta {
   id: string;

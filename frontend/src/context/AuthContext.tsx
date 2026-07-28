@@ -124,6 +124,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const carregarSessao = useCallback(async () => {
     try {
+      // 1. Carrega imediatamente do localStorage para evitar flicker na inicialização
+      if (typeof window !== 'undefined') {
+        const savedUserStr = localStorage.getItem('fbke_session_user');
+        if (savedUserStr) {
+          try {
+            const savedUser = JSON.parse(savedUserStr);
+            if (savedUser && savedUser.id) {
+              setUsuario(savedUser);
+              aplicarPerfilAtivo(savedUser);
+            }
+          } catch (e) {
+            console.error('[AuthContext] Erro ao parsear sessão salva:', e);
+          }
+        }
+      }
+
+      // 2. Valida a sessão no servidor
       const res = await fetch(`${API_URL}/api/auth/me`, { credentials: 'include' });
       if (!res.ok) throw new Error('Falha ao carregar sessão');
       const data = await parseJsonResponse(res);
@@ -131,14 +148,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data.autenticado && data.usuario) {
         setUsuario(data.usuario);
         aplicarPerfilAtivo(data.usuario);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('fbke_session_user', JSON.stringify(data.usuario));
+        }
       } else {
+        // Se a API diz explicitamente que não está autenticado, limpa a sessão
         setUsuario(null);
         setTipo(null);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('fbke_session_user');
+        }
       }
     } catch (err) {
-      console.error('[AuthContext] Erro ao carregar sessão:', err);
-      setUsuario(null);
-      setTipo(null);
+      console.error('[AuthContext] Erro ao carregar sessão da API:', err);
+      // Se deu erro de rede, mantém o usuário do localStorage se existir
     } finally {
       setCarregando(false);
     }
@@ -211,6 +234,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUsuario(data.usuario);
       aplicarPerfilAtivo(data.usuario);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('fbke_session_user', JSON.stringify(data.usuario));
+      }
       return data;
     } finally {
       setCarregando(false);
@@ -228,6 +254,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!res.ok) throw new Error(data.error || 'Erro ao fazer login');
     setUsuario(data.usuario);
     aplicarPerfilAtivo(data.usuario);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('fbke_session_user', JSON.stringify(data.usuario));
+    }
     return data;
   }
 
@@ -242,6 +271,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setUsuario(null);
       setTipo(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('fbke_session_user');
+      }
     }
   }
 
