@@ -303,38 +303,38 @@ class SupabaseService:
             return None, "Usuário não encontrado."
         else:
             try:
-                # Login real usando um cliente temporário para não sobrescrever os cabeçalhos globais do service_role com o token do usuário.
-                # Se sobrescrevermos os cabeçalhos globais, as consultas subsequentes ao banco falharão por causa de políticas RLS.
                 anon_key = os.environ.get("SUPABASE_ANON_KEY") or SUPABASE_KEY
                 temp_supabase = create_client(SUPABASE_URL, anon_key)
                 res = temp_supabase.auth.sign_in_with_password({"email": resolved_email, "password": password})
-                if res.user:
-                    # Busca as informações estendidas do profile usando o cliente global (que usa service_role e pula RLS)
-                    profile_res = supabase.table("profiles").select("*").eq("id", res.user.id).single().execute()
-                    if profile_res.data:
-                        user_data = dict(profile_res.data)
-                        if user_data["tipo"] == "atleta":
-                            atleta_res = supabase.table("atletas").select("*").eq("id", res.user.id).maybe_single().execute()
-                            if atleta_res.data:
-                                user_data.update(atleta_res.data)
-                        elif user_data["tipo"] == "filial":
-                            filial_res = supabase.table("filiais").select("*").eq("id", res.user.id).maybe_single().execute()
-                            if filial_res.data:
-                                filial_data = dict(filial_res.data)
-                                if "tipo" in filial_data:
-                                    filial_data["tipo_filial"] = filial_data.pop("tipo")
-                                user_data.update(filial_data)
-                                user_data["tipo"] = "filial"
-                            atleta_res = supabase.table("atletas").select("*").eq("id", res.user.id).maybe_single().execute()
-                            if atleta_res.data:
-                                user_data["tambem_atleta"] = True
-                                user_data["dados_atleta"] = atleta_res.data
-                                if "autoriza_uso_imagem" in atleta_res.data:
-                                    user_data["autoriza_uso_imagem"] = atleta_res.data["autoriza_uso_imagem"]
-                            else:
-                                user_data["tambem_atleta"] = False
-                        return user_data, None
-                return None, "Credenciais inválidas."
+                if not res or not res.user:
+                    return None, "Credenciais inválidas."
+
+                profile_res = supabase.table("profiles").select("*").eq("id", res.user.id).maybe_single().execute()
+                if not profile_res or not profile_res.data:
+                    return None, "Perfil não encontrado no banco."
+
+                user_data = dict(profile_res.data)
+                if user_data["tipo"] == "atleta":
+                    atleta_res = supabase.table("atletas").select("*").eq("id", res.user.id).maybe_single().execute()
+                    if atleta_res and atleta_res.data:
+                        user_data.update(atleta_res.data)
+                elif user_data["tipo"] == "filial":
+                    filial_res = supabase.table("filiais").select("*").eq("id", res.user.id).maybe_single().execute()
+                    if filial_res and filial_res.data:
+                        filial_data = dict(filial_res.data)
+                        if "tipo" in filial_data:
+                            filial_data["tipo_filial"] = filial_data.pop("tipo")
+                        user_data.update(filial_data)
+                        user_data["tipo"] = "filial"
+                    atleta_res = supabase.table("atletas").select("*").eq("id", res.user.id).maybe_single().execute()
+                    if atleta_res and atleta_res.data:
+                        user_data["tambem_atleta"] = True
+                        user_data["dados_atleta"] = atleta_res.data
+                        if "autoriza_uso_imagem" in atleta_res.data:
+                            user_data["autoriza_uso_imagem"] = atleta_res.data["autoriza_uso_imagem"]
+                    else:
+                        user_data["tambem_atleta"] = False
+                return user_data, None
             except Exception as e:
                 return None, str(e)
 
@@ -379,30 +379,31 @@ class SupabaseService:
             return None, "Perfil não encontrado."
         else:
             try:
-                profile_res = supabase.table("profiles").select("*").eq("id", user_id).single().execute()
-                if profile_res.data:
-                    user_data = dict(profile_res.data)
-                    if user_data["tipo"] == "atleta":
-                        atleta_res = supabase.table("atletas").select("*").eq("id", user_id).maybe_single().execute()
-                        if atleta_res.data:
-                            user_data.update(atleta_res.data)
-                    elif user_data["tipo"] == "filial":
-                        filial_res = supabase.table("filiais").select("*").eq("id", user_id).maybe_single().execute()
-                        if filial_res.data:
-                            filial_data = dict(filial_res.data)
-                            if "tipo" in filial_data:
-                                filial_data["tipo_filial"] = filial_data.pop("tipo")
-                            user_data.update(filial_data)
-                            user_data["tipo"] = "filial"
-                        atleta_res = supabase.table("atletas").select("*").eq("id", user_id).maybe_single().execute()
-                        if atleta_res.data:
-                            user_data["tambem_atleta"] = True
-                            user_data["dados_atleta"] = atleta_res.data
-                            if "autoriza_uso_imagem" in atleta_res.data:
-                                user_data["autoriza_uso_imagem"] = atleta_res.data["autoriza_uso_imagem"]
-                        else:
-                            user_data["tambem_atleta"] = False
-                    return user_data, None
-                return None, "Perfil não encontrado."
+                profile_res = supabase.table("profiles").select("*").eq("id", user_id).maybe_single().execute()
+                if not profile_res or not profile_res.data:
+                    return None, "Perfil não encontrado."
+
+                user_data = dict(profile_res.data)
+                if user_data["tipo"] == "atleta":
+                    atleta_res = supabase.table("atletas").select("*").eq("id", user_id).maybe_single().execute()
+                    if atleta_res and atleta_res.data:
+                        user_data.update(atleta_res.data)
+                elif user_data["tipo"] == "filial":
+                    filial_res = supabase.table("filiais").select("*").eq("id", user_id).maybe_single().execute()
+                    if filial_res and filial_res.data:
+                        filial_data = dict(filial_res.data)
+                        if "tipo" in filial_data:
+                            filial_data["tipo_filial"] = filial_data.pop("tipo")
+                        user_data.update(filial_data)
+                        user_data["tipo"] = "filial"
+                    atleta_res = supabase.table("atletas").select("*").eq("id", user_id).maybe_single().execute()
+                    if atleta_res and atleta_res.data:
+                        user_data["tambem_atleta"] = True
+                        user_data["dados_atleta"] = atleta_res.data
+                        if "autoriza_uso_imagem" in atleta_res.data:
+                            user_data["autoriza_uso_imagem"] = atleta_res.data["autoriza_uso_imagem"]
+                    else:
+                        user_data["tambem_atleta"] = False
+                return user_data, None
             except Exception as e:
                 return None, str(e)
