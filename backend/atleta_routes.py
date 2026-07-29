@@ -216,7 +216,7 @@ def create_atleta_routes(app: Flask):
             if not existing_atleta.get("registro_federacao") and not update_atl.get("registro_federacao"):
                 from datetime import datetime
                 ano_atual = datetime.now().year
-                codigo_gerado = f"GRKK-A-{ano_atual}-{str(id)[:5].upper()}"
+                codigo_gerado = f"FBKE-A-{ano_atual}-{str(id)[:5].upper()}"
                 update_atl["registro_federacao"] = codigo_gerado
 
         res, error = SupabaseService.update("atletas", id, update_atl)

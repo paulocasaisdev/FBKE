@@ -185,10 +185,10 @@ def create_filial_routes(app: Flask):
             if existing_filial and existing_filial.get("status") != "ativo":
                 from datetime import datetime
                 ano_atual = datetime.now().year
-                codigo_gerado = f"GRKK-F-{ano_atual}-{str(id)[:5].upper()}"
+                codigo_gerado = f"FBKE-F-{ano_atual}-{str(id)[:5].upper()}"
                 if not existing_filial.get("registro_federativo") and not update_fil.get("registro_federativo"):
                     update_fil["registro_federativo"] = codigo_gerado
-                if not existing_filial.get("codigo_interno") or existing_filial.get("codigo_interno").startswith("MOCK-FILIAL"):
+                if not existing_filial.get("codigo_interno") or existing_filial.get("codigo_interno").startswith("MOCK-FILIAL") or existing_filial.get("codigo_interno").startswith("GRKK"):
                     update_fil["codigo_interno"] = codigo_gerado
 
         if update_fil:

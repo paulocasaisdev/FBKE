@@ -313,7 +313,7 @@ export default function FiliaisPage() {
               <div>
                 <span className="text-[10px] font-extrabold uppercase text-[#CE1126] tracking-wider block">Ficha Oficial de Filiação</span>
                 <h2 className="text-xl font-black text-slate-900">{filialSelecionada.nome_fantasia || filialSelecionada.nome}</h2>
-                <p className="text-xs text-slate-500 font-mono">Código Federativo: {filialSelecionada.codigo_interno || 'N/A'}</p>
+                <p className="text-xs text-slate-500 font-mono">Código FBKE: {filialSelecionada.codigo_interno || 'Pendente'}</p>
               </div>
             </div>
 
@@ -348,7 +348,7 @@ export default function FiliaisPage() {
                   <p className="font-bold text-slate-900 font-mono">{formatarCPF(filialSelecionada.cpf_responsavel)}</p>
                 </div>
                 <div>
-                  <p className="text-slate-400 text-[9px] font-bold uppercase">Reg. Federativo</p>
+                  <p className="text-slate-400 text-[9px] font-bold uppercase">Reg. CBK (Confederação)</p>
                   <p className="font-bold text-slate-900 font-mono">{filialSelecionada.registro_federativo || 'Pendente'}</p>
                 </div>
               </div>

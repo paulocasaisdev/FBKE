@@ -1036,11 +1036,11 @@ export default function ConfiguracoesPage() {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-slate-700 text-xs font-bold uppercase tracking-wider">Registro Federativo FBKE</label>
+                    <label className="text-slate-700 text-xs font-bold uppercase tracking-wider">Reg. Federativo CBK (Confederação)</label>
                     <input
                       value={filialForm.registro_federativo}
                       onChange={setFilial('registro_federativo')}
-                      placeholder="Ex: FBKE-FIL-2026-004"
+                      placeholder="Ex: CBK-12345"
                       className="w-full bg-slate-50 border border-slate-200 text-slate-900 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-[#002B7F]"
                     />
                   </div>
