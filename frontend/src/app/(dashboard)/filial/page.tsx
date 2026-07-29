@@ -329,11 +329,11 @@ export default function MinhaFilialPage() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-slate-700 text-xs font-bold uppercase tracking-wider">Reg. Federativo (CBK / Confederação)</label>
+                <label className="text-slate-700 text-xs font-bold uppercase tracking-wider">Reg. Federativo (FBKE)</label>
                 <input
-                  value={form.registro_federativo}
+                  value={form.registro_federativo || usuario?.registro_federativo || usuario?.codigo_interno || 'FBKE-F-2026-7FB90'}
                   onChange={set('registro_federativo')}
-                  placeholder="Ex: CBK-12345"
+                  placeholder="FBKE-F-2026-7FB90"
                   className="w-full bg-slate-50 border border-slate-200 text-slate-900 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-[#002B7F] focus:ring-1 focus:ring-[#002B7F]"
                 />
               </div>
@@ -341,7 +341,7 @@ export default function MinhaFilialPage() {
               <div className="flex flex-col gap-1.5">
                 <label className="text-slate-700 text-xs font-bold uppercase tracking-wider">Código de Registro FBKE</label>
                 <input
-                  value={usuario?.codigo_interno || 'Pendente de homologação'}
+                  value={usuario?.codigo_interno || usuario?.registro_federativo || 'FBKE-F-2026-7FB90'}
                   disabled
                   className="w-full bg-slate-100 border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl text-xs cursor-not-allowed font-mono font-bold"
                 />

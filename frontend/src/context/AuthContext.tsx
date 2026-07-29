@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isFilial = tipo === 'filial';
   const isFiliado = tipo === 'atleta'; // Alias para compatibilidade
   const autenticado = !!usuario;
-  const isPerfilUnificado = !!(usuario?.tambem_atleta);
+  const isPerfilUnificado = !!(usuario?.tambem_atleta || usuario?.tipo === 'filial' || usuario?.dados_atleta);
   const tipoReal = usuario?.tipo || null;
 
   // Validação de cadastro incompleto (Falta CPF ou Endereço ou Dados obrigatórios)
@@ -86,7 +86,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const aplicarPerfilAtivo = useCallback((u: UserProfile) => {
-    if (u.tambem_atleta) {
+    if (u.tipo === 'filial' || u.tambem_atleta) {
+      u.tambem_atleta = true;
       const cpfFallback = u.cpf || u.dados_atleta?.cpf || u.cpf_responsavel || u.cnpj_cpf || '';
       const nomeFallback = u.nome || u.dados_atleta?.nome || u.nome_fantasia || '';
       const endFallback = u.endereco || u.rua || u.dados_atleta?.endereco || '';
@@ -123,6 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const carregarSessao = useCallback(async () => {
+    let savedUserId = '';
     try {
       // 1. Carrega imediatamente do localStorage para evitar flicker na inicialização
       if (typeof window !== 'undefined') {
@@ -131,6 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           try {
             const savedUser = JSON.parse(savedUserStr);
             if (savedUser && savedUser.id) {
+              savedUserId = savedUser.id;
               setUsuario(savedUser);
               aplicarPerfilAtivo(savedUser);
             }
@@ -140,8 +143,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // 2. Valida a sessão no servidor
-      const res = await fetch(`${API_URL}/api/auth/me`, { credentials: 'include' });
+      // 2. Valida a sessão no servidor enviando cookie e Bearer header
+      const headers: Record<string, string> = {};
+      if (savedUserId) {
+        headers['Authorization'] = `Bearer ${savedUserId}`;
+      }
+
+      const res = await fetch(`${API_URL}/api/auth/me`, {
+        headers,
+        credentials: 'include'
+      });
       if (!res.ok) throw new Error('Falha ao carregar sessão');
       const data = await parseJsonResponse(res);
 

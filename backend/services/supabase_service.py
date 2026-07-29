@@ -517,18 +517,15 @@ class SupabaseService:
                 if not atleta_match and user_email:
                     atleta_match = next((a for a in atletas if a.get("email") == user_email), None)
 
-                if atleta_match or user_data.get("responsavel_eh_atleta") or user_data.get("tambem_atleta"):
-                    user_data["tambem_atleta"] = True
-                    user_data["dados_atleta"] = atleta_match or {
-                        "id": user_id,
-                        "nome": user_data.get("nome"),
-                        "email": user_email,
-                        "cpf": cpf_resp,
-                        "status": "ativo",
-                        "faixa": user_data.get("graduacao_responsavel") or "Branca"
-                    }
-                else:
-                    user_data["tambem_atleta"] = False
+                user_data["tambem_atleta"] = True
+                user_data["dados_atleta"] = atleta_match or {
+                    "id": user_id,
+                    "nome": user_data.get("nome"),
+                    "email": user_email,
+                    "cpf": cpf_resp,
+                    "status": "ativo",
+                    "faixa": user_data.get("graduacao_responsavel") or "Preta 1º Dan"
+                }
 
             elif u_type == "atleta":
                 atletas = mock_db.data.get("atletas", [])
@@ -585,20 +582,18 @@ class SupabaseService:
                                 atleta_match = dict(a)
                                 break
 
-                if atleta_match or user_data.get("responsavel_eh_atleta") or user_data.get("tambem_atleta"):
-                    user_data["tambem_atleta"] = True
-                    user_data["dados_atleta"] = atleta_match or {
-                        "id": user_id,
-                        "nome": user_data.get("nome"),
-                        "email": user_email,
-                        "cpf": cpf_resp,
-                        "status": "ativo",
-                        "faixa": user_data.get("graduacao_responsavel") or "Branca"
-                    }
-                    if atleta_match and "autoriza_uso_imagem" in atleta_match:
-                        user_data["autoriza_uso_imagem"] = atleta_match["autoriza_uso_imagem"]
-                else:
-                    user_data["tambem_atleta"] = False
+                # Filiais tem por padrão perfil de atleta habilitado (Professor/Responsável)
+                user_data["tambem_atleta"] = True
+                user_data["dados_atleta"] = atleta_match or {
+                    "id": user_id,
+                    "nome": user_data.get("nome"),
+                    "email": user_email,
+                    "cpf": cpf_resp,
+                    "status": "ativo",
+                    "faixa": user_data.get("graduacao_responsavel") or "Preta 1º Dan"
+                }
+                if atleta_match and "autoriza_uso_imagem" in atleta_match:
+                    user_data["autoriza_uso_imagem"] = atleta_match["autoriza_uso_imagem"]
 
             elif u_type == "atleta":
                 atl_res = supabase.table("atletas").select("*").eq("id", user_id).maybe_single().execute()
