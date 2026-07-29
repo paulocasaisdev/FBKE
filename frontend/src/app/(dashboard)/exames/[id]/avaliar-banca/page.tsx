@@ -3,6 +3,9 @@ import AvaliarBancaClient from './AvaliarBancaClient';
 
 type Params = Promise<{ id: string }>;
 
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
   return [
     { id: 'exame-1' },

@@ -9,6 +9,8 @@ import {
   AlertCircle, ClipboardList, CheckCircle2, ChevronRight, X
 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
 interface Exame {
@@ -155,9 +157,15 @@ export default function ExamesPage() {
       }
 
       const data = await res.json();
-      setExames([...exames, data.exame]);
+      const novoExame = data.exame || data;
+
       setShowNovoExameModal(false);
       setNotif({ type: 'success', msg: 'Exame de graduação criado com sucesso!' });
+      
+      if (novoExame && novoExame.id) {
+        setExames(prev => [novoExame, ...prev.filter(x => x.id !== novoExame.id)]);
+      }
+      await carregarExames();
     } catch (err: any) {
       setNotif({ type: 'error', msg: err.message || 'Erro de conexão.' });
     }
