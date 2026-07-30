@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Layout, Settings, Image, Users, Plus, Trash2, ShieldAlert, Loader2, Save, X, MessageSquare, Send, Mail, Phone, Shield, FileText, BookOpen, Bell, AlertTriangle, Minus } from 'lucide-react';
+import { Layout, Settings, Image, Users, Plus, Trash2, ShieldAlert, Loader2, Save, X, MessageSquare, Send, Mail, Phone, Shield, FileText, BookOpen, Bell, AlertTriangle, Minus, Upload, ArrowUp, ArrowDown } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
@@ -230,6 +230,80 @@ export default function AdminCMSPage() {
   const [bannerForm, setBannerForm] = useState({ titulo: '', subtitulo: '', link: '', imagem_url: '' });
   const [teamForm, setTeamForm] = useState({ nome: '', cargo: '', biografia: '', foto_url: '', order: 0 });
   const [galleryForm, setGalleryForm] = useState({ title: '', category: 'Treinos', image_url: '', order: 0 });
+
+  interface BatchFileItem {
+    id: string;
+    file: File;
+    previewUrl: string;
+    order: number;
+    title: string;
+  }
+
+  // Estados para Upload de Imagens na Galeria
+  const [isBatchUpload, setIsBatchUpload] = useState(false);
+  const [batchItems, setBatchItems] = useState<BatchFileItem[]>([]);
+  const [uploadCategory, setUploadCategory] = useState('Treinos');
+  const [baseTitle, setBaseTitle] = useState('');
+  const [startOrder, setStartOrder] = useState(1);
+  const [fileSourceMode, setFileSourceMode] = useState<'upload' | 'url'>('upload');
+  const [singleFile, setSingleFile] = useState<File | null>(null);
+  const [singlePreview, setSinglePreview] = useState<string>('');
+
+  const handleSelectBatchFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const filesArray = Array.from(e.target.files);
+      const currentMaxOrder = batchItems.length > 0 ? Math.max(...batchItems.map(i => i.order)) : startOrder - 1;
+      const newItems: BatchFileItem[] = filesArray.map((file, idx) => ({
+        id: Math.random().toString(36).substring(7),
+        file,
+        previewUrl: URL.createObjectURL(file),
+        order: currentMaxOrder + 1 + idx,
+        title: ''
+      }));
+      setBatchItems(prev => [...prev, ...newItems]);
+    }
+  };
+
+  const handleMoveBatchItem = (index: number, direction: 'up' | 'down') => {
+    if ((direction === 'up' && index === 0) || (direction === 'down' && index === batchItems.length - 1)) return;
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const updated = [...batchItems];
+    
+    // Troca as ordens numéricas
+    const tempOrder = updated[index].order;
+    updated[index].order = updated[targetIndex].order;
+    updated[targetIndex].order = tempOrder;
+
+    // Troca a posição no array
+    const tempItem = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = tempItem;
+
+    setBatchItems(updated);
+  };
+
+  const handleRemoveBatchItem = (index: number) => {
+    setBatchItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateBatchItemOrder = (index: number, newOrder: number) => {
+    const updated = [...batchItems];
+    updated[index].order = newOrder;
+    setBatchItems(updated);
+  };
+
+  const handleStartOrderChange = (val: number) => {
+    setStartOrder(val);
+    setBatchItems(prev => prev.map((item, idx) => ({ ...item, order: val + idx })));
+  };
+
+  const handleSelectSingleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSingleFile(file);
+      setSinglePreview(URL.createObjectURL(file));
+    }
+  };
 
   // Site configuration states
   interface ConfigInicial {
@@ -811,10 +885,117 @@ export default function AdminCMSPage() {
     e.preventDefault();
     setSalvando(true);
 
+    // ── FLUXO 1: Upload em Lote para Galeria ────────────────────────────────
+    if (activeTab === 'galeria' && isBatchUpload) {
+      if (batchItems.length === 0) {
+        alert("Por favor, selecione pelo menos uma imagem do computador.");
+        setSalvando(false);
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        batchItems.forEach(item => formData.append('files', item.file));
+        formData.append('subfolder', 'galeria');
+
+        const uploadRes = await fetch(`${API_URL}/api/upload`, {
+          method: 'POST',
+          credentials: 'include',
+          body: formData
+        });
+
+        if (!uploadRes.ok) {
+          const errData = await uploadRes.json().catch(() => ({}));
+          throw new Error(errData.error || "Erro ao realizar upload das imagens em lote");
+        }
+
+        const uploadData = await uploadRes.json();
+        const uploadedFiles = uploadData.files || [];
+
+        const newGalleryItems: GalleryItem[] = [];
+        for (let idx = 0; idx < uploadedFiles.length; idx++) {
+          const fileInfo = uploadedFiles[idx];
+          const batchConfig = batchItems[idx];
+
+          const titleText = batchConfig?.title?.trim()
+            ? batchConfig.title
+            : baseTitle
+              ? (batchItems.length > 1 ? `${baseTitle} #${idx + 1}` : baseTitle)
+              : (fileInfo.original_filename ? fileInfo.original_filename.replace(/\.[^/.]+$/, "") : `Foto ${idx + 1}`);
+
+          const itemPayload = {
+            title: titleText,
+            category: uploadCategory,
+            image_url: fileInfo.url,
+            order: Number(batchConfig?.order ?? (Number(startOrder) + idx))
+          };
+
+          try {
+            const cmsRes = await fetch(`${API_URL}/api/cms`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ tipo: 'galeria', payload: itemPayload })
+            });
+
+            if (cmsRes.ok) {
+              const savedItem = await cmsRes.json();
+              newGalleryItems.push(savedItem);
+            } else {
+              newGalleryItems.push({ id: Date.now() + idx, ...itemPayload });
+            }
+          } catch (e) {
+            newGalleryItems.push({ id: Date.now() + idx, ...itemPayload });
+          }
+        }
+
+        setGaleria(prev => [...prev, ...newGalleryItems]);
+        setShowModal(false);
+        setBatchItems([]);
+      } catch (err: any) {
+        console.error("Erro ao salvar lote de galeria:", err);
+        alert(err.message || "Erro de conexão ao realizar upload em lote.");
+      } finally {
+        setSalvando(false);
+      }
+      return;
+    }
+
+    // ── FLUXO 2: Item Único (Banners, Equipe ou Galeria Única) ───────────────
     let payload = {};
     if (activeTab === 'banners') payload = bannerForm;
     else if (activeTab === 'equipe') payload = teamForm;
-    else if (activeTab === 'galeria') payload = galleryForm;
+    else if (activeTab === 'galeria') {
+      let finalImageUrl = galleryForm.image_url;
+
+      // Se o usuário selecionou um arquivo local no modo de item único
+      if (fileSourceMode === 'upload' && singleFile) {
+        try {
+          const formData = new FormData();
+          formData.append('file', singleFile);
+          formData.append('subfolder', 'galeria');
+
+          const uploadRes = await fetch(`${API_URL}/api/upload`, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+          });
+
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            finalImageUrl = uploadData.url;
+          } else {
+            const errData = await uploadRes.json().catch(() => ({}));
+            throw new Error(errData.error || "Erro ao fazer upload da imagem");
+          }
+        } catch (err: any) {
+          console.error("Erro no upload do arquivo único:", err);
+          alert(`Aviso de upload: ${err.message || 'Erro ao enviar arquivo local'}. Usando valor configurado.`);
+        }
+      }
+
+      payload = { ...galleryForm, image_url: finalImageUrl };
+    }
 
     const getTipoItem = (tab: string) => {
       if (tab === 'banners') return 'banner';
@@ -944,28 +1125,50 @@ export default function AdminCMSPage() {
         </div>
 
         {(activeTab === 'banners' || activeTab === 'equipe' || activeTab === 'galeria' || activeTab === 'sensei-ia' || activeTab === 'avisos' || activeTab === 'transparencia') && (
-          <button
-            onClick={() => {
-              if (activeTab === 'sensei-ia') {
-                setGlossarioForm({ termo: '', definicao: '' });
-                setIsEditingTerm(false);
-                setShowGlossarioModal(true);
-              } else if (activeTab === 'avisos') {
-                setAvisoForm({ titulo: '', conteudo: '', categoria: 'Geral', destinatario: 'todos' });
-                setShowAvisoModal(true);
-              } else if (activeTab === 'transparencia') {
-                window.location.href = '/documentos';
-              } else {
-                setBannerForm({ titulo: '', subtitulo: '', link: '', imagem_url: '' });
-                setTeamForm({ nome: '', cargo: '', biografia: '', foto_url: '', order: equipe.length + 1 });
-                setGalleryForm({ title: '', category: 'Treinos', image_url: '', order: galeria.length + 1 });
-                setShowModal(true);
-              }
-            }}
-            className="h-11 px-5 inline-flex items-center justify-center gap-2 bg-[#CE1126] hover:bg-red-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm cursor-pointer whitespace-nowrap"
-          >
-            <Plus size={18} className="shrink-0" /> {activeTab === 'transparencia' ? 'Novo Documento' : 'Adicionar Item'}
-          </button>
+          <div className="flex items-center gap-2">
+            {activeTab === 'galeria' && (
+              <button
+                onClick={() => {
+                  setGalleryForm({ title: '', category: 'Treinos', image_url: '', order: galeria.length + 1 });
+                  setIsBatchUpload(true);
+                  setBatchItems([]);
+                  setBaseTitle('');
+                  setUploadCategory('Treinos');
+                  setStartOrder(galeria.length + 1);
+                  setShowModal(true);
+                }}
+                className="h-11 px-5 inline-flex items-center justify-center gap-2 bg-[#002B7F] hover:bg-blue-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm cursor-pointer whitespace-nowrap"
+              >
+                <Upload size={18} className="shrink-0" /> Upload em Lote
+              </button>
+            )}
+            <button
+              onClick={() => {
+                if (activeTab === 'sensei-ia') {
+                  setGlossarioForm({ termo: '', definicao: '' });
+                  setIsEditingTerm(false);
+                  setShowGlossarioModal(true);
+                } else if (activeTab === 'avisos') {
+                  setAvisoForm({ titulo: '', conteudo: '', categoria: 'Geral', destinatario: 'todos' });
+                  setShowAvisoModal(true);
+                } else if (activeTab === 'transparencia') {
+                  window.location.href = '/documentos';
+                } else {
+                  setIsBatchUpload(false);
+                  setSingleFile(null);
+                  setSinglePreview('');
+                  setFileSourceMode('upload');
+                  setBannerForm({ titulo: '', subtitulo: '', link: '', imagem_url: '' });
+                  setTeamForm({ nome: '', cargo: '', biografia: '', foto_url: '', order: equipe.length + 1 });
+                  setGalleryForm({ title: '', category: 'Treinos', image_url: '', order: galeria.length + 1 });
+                  setShowModal(true);
+                }
+              }}
+              className="h-11 px-5 inline-flex items-center justify-center gap-2 bg-[#CE1126] hover:bg-red-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm cursor-pointer whitespace-nowrap"
+            >
+              <Plus size={18} className="shrink-0" /> {activeTab === 'transparencia' ? 'Novo Documento' : 'Novo Item'}
+            </button>
+          </div>
         )}
       </div>
 
@@ -3025,8 +3228,203 @@ export default function AdminCMSPage() {
                 </>
               )}
 
-              {activeTab === 'galeria' && (
-                <>
+              {activeTab === 'galeria' && isBatchUpload && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-zinc-950/60 border border-dashed border-zinc-700 hover:border-gold rounded-xl text-center cursor-pointer transition relative">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/png, image/jpeg, image/webp, image/gif"
+                      onChange={handleSelectBatchFiles}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                    />
+                    <Upload className="mx-auto text-gold mb-2" size={24} />
+                    <p className="text-xs font-bold text-white">Clique ou arraste imagens aqui</p>
+                    <p className="text-[10px] text-zinc-500 mt-1">Selecione vários arquivos (PNG, JPG, WEBP, GIF)</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Categoria para o Lote *</label>
+                      <select
+                        value={uploadCategory}
+                        onChange={(e) => setUploadCategory(e.target.value)}
+                        className="w-full px-3 py-2 text-xs bg-zinc-950 border border-zinc-800 rounded-xl text-white outline-none font-sans"
+                      >
+                        <option value="Treinos">Treinos</option>
+                        <option value="Eventos">Eventos</option>
+                        <option value="Gasshukus">Gasshukus</option>
+                        <option value="Graduações">Graduações</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Ordem Inicial Padrão *</label>
+                      <input
+                        type="number" required
+                        value={startOrder}
+                        onChange={(e) => handleStartOrderChange(Number(e.target.value))}
+                        className="w-full px-3 py-2 text-xs bg-zinc-950 border border-zinc-800 rounded-xl text-white outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Legenda Base Padrão (Opcional)</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Exame de Faixas em Salvador"
+                      value={baseTitle}
+                      onChange={(e) => setBaseTitle(e.target.value)}
+                      className="w-full px-3 py-2 text-xs bg-zinc-950 border border-zinc-800 rounded-xl text-white outline-none font-sans"
+                    />
+                    <span className="text-[9px] text-zinc-500 mt-1 block">Será usada como legenda padrão caso o título individual não seja preenchido.</span>
+                  </div>
+
+                  {batchItems.length > 0 && (
+                    <div className="space-y-2 pt-1 border-t border-zinc-800">
+                      <div className="flex justify-between items-center text-[10px] font-bold text-zinc-400">
+                        <span>{batchItems.length} FOTO(S) — SELECIONE A ORDEM E LEGENDA</span>
+                        <button
+                          type="button"
+                          onClick={() => setBatchItems([])}
+                          className="text-red-400 hover:underline cursor-pointer"
+                        >
+                          Limpar tudo
+                        </button>
+                      </div>
+                      <div className="space-y-2 max-h-56 overflow-y-auto p-1.5 bg-zinc-950 rounded-xl border border-zinc-800">
+                        {batchItems.map((item, idx) => (
+                          <div key={item.id} className="flex items-center gap-2 p-2 bg-zinc-900 border border-zinc-800/80 rounded-lg">
+                            <div className="w-10 h-10 shrink-0 rounded overflow-hidden border border-zinc-800 bg-zinc-950 relative">
+                              <img src={item.previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <input
+                                type="text"
+                                placeholder={baseTitle ? (batchItems.length > 1 ? `${baseTitle} #${idx + 1}` : baseTitle) : item.file.name}
+                                value={item.title}
+                                onChange={(e) => {
+                                  const updated = [...batchItems];
+                                  updated[idx].title = e.target.value;
+                                  setBatchItems(updated);
+                                }}
+                                className="w-full px-2 py-1 text-[11px] bg-zinc-950 border border-zinc-800 rounded text-white outline-none font-sans"
+                              />
+                              <p className="text-[8px] text-zinc-500 truncate mt-0.5">{item.file.name}</p>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              <div className="flex flex-col items-center">
+                                <span className="text-[7px] font-bold text-zinc-500 uppercase">Ordem</span>
+                                <input
+                                  type="number"
+                                  value={item.order}
+                                  onChange={(e) => handleUpdateBatchItemOrder(idx, Number(e.target.value))}
+                                  className="w-11 px-1 py-0.5 text-xs text-center font-bold bg-zinc-950 border border-zinc-800 rounded text-gold outline-none"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-0.5 ml-0.5">
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={() => handleMoveBatchItem(idx, 'up')}
+                                  className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded disabled:opacity-20 cursor-pointer"
+                                  title="Mover para cima"
+                                >
+                                  <ArrowUp size={11} />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={idx === batchItems.length - 1}
+                                  onClick={() => handleMoveBatchItem(idx, 'down')}
+                                  className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded disabled:opacity-20 cursor-pointer"
+                                  title="Mover para baixo"
+                                >
+                                  <ArrowDown size={11} />
+                                </button>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveBatchItem(idx)}
+                                className="p-1 text-red-400 hover:bg-red-500/10 rounded cursor-pointer ml-0.5"
+                                title="Remover foto"
+                              >
+                                <X size={13} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'galeria' && !isBatchUpload && (
+                <div className="space-y-4">
+                  {/* Seletor de Origem: Upload vs URL */}
+                  <div className="flex border border-zinc-800 rounded-xl p-1 bg-zinc-950 gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setFileSourceMode('upload')}
+                      className={`flex-1 py-1.5 text-[10px] font-bold uppercase rounded-lg transition ${
+                        fileSourceMode === 'upload' ? 'bg-zinc-800 text-white shadow-xs' : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      Upload do Computador
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFileSourceMode('url')}
+                      className={`flex-1 py-1.5 text-[10px] font-bold uppercase rounded-lg transition ${
+                        fileSourceMode === 'url' ? 'bg-zinc-800 text-white shadow-xs' : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      URL da Imagem
+                    </button>
+                  </div>
+
+                  {fileSourceMode === 'upload' ? (
+                    <div>
+                      <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Selecionar Imagem do Computador *</label>
+                      <div className="p-4 bg-zinc-950 border border-dashed border-zinc-800 hover:border-zinc-600 rounded-xl text-center relative cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/png, image/jpeg, image/webp, image/gif"
+                          onChange={handleSelectSingleFile}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                        />
+                        {singlePreview ? (
+                          <div className="flex items-center gap-3">
+                            <img src={singlePreview} alt="Preview" className="w-12 h-12 rounded object-cover border border-zinc-800" />
+                            <div className="text-left overflow-hidden">
+                              <p className="text-xs text-white font-bold truncate">{singleFile?.name}</p>
+                              <p className="text-[10px] text-zinc-500">{(singleFile?.size || 0) / 1024 > 1024 ? `${((singleFile?.size || 0) / 1048576).toFixed(1)} MB` : `${Math.round((singleFile?.size || 0) / 1024)} KB`}</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="py-2">
+                            <Upload className="mx-auto text-zinc-500 mb-1" size={20} />
+                            <p className="text-xs font-bold text-zinc-300">Escolher arquivo de imagem</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">URL da Imagem *</label>
+                      <input
+                        type="text" required
+                        placeholder="https://images.unsplash.com/..."
+                        value={galleryForm.image_url}
+                        onChange={(e) => setGalleryForm({ ...galleryForm, image_url: e.target.value })}
+                        className="w-full px-3.5 py-2.5 text-xs bg-zinc-950 border border-zinc-800 rounded-xl text-white outline-none font-sans"
+                      />
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Legenda da Imagem *</label>
                     <input
@@ -3034,7 +3432,7 @@ export default function AdminCMSPage() {
                       placeholder="Ex: Exame de Faixas em Salvador"
                       value={galleryForm.title}
                       onChange={(e) => setGalleryForm({ ...galleryForm, title: e.target.value })}
-                      className="w-full px-3.5 py-2.5 text-xs bg-zinc-950 border border-zinc-800 rounded-xl text-white outline-none"
+                      className="w-full px-3.5 py-2.5 text-xs bg-zinc-950 border border-zinc-800 rounded-xl text-white outline-none font-sans"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -3061,17 +3459,7 @@ export default function AdminCMSPage() {
                       />
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">URL da Imagem *</label>
-                    <input
-                      type="text" required
-                      placeholder="https://images.unsplash.com/..."
-                      value={galleryForm.image_url}
-                      onChange={(e) => setGalleryForm({ ...galleryForm, image_url: e.target.value })}
-                      className="w-full px-3.5 py-2.5 text-xs bg-zinc-950 border border-zinc-800 rounded-xl text-white outline-none"
-                    />
-                  </div>
-                </>
+                </div>
               )}
 
               <div className="flex gap-2.5 pt-2">

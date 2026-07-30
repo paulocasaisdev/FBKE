@@ -14,16 +14,18 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL")
 # Prefer service role key for backend operations to bypass RLS, fallback to anon key
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_ANON_KEY")
 
-# Verifica se o Supabase está configurado com chaves válidas ou se usará o emulador mock
+# Verifica se o Supabase está configurado com chaves válidas ou se usará o emulador mock em desenvolvimento
 is_mock_mode = (
     not SUPABASE_URL 
     or not SUPABASE_KEY 
     or "sua-url" in SUPABASE_URL 
     or "seu-anon-key" in SUPABASE_KEY
     or "seu-token-anon-key" in SUPABASE_KEY
+    or os.environ.get("ENABLE_MOCK") == "true"
+    or os.environ.get("FORCE_MOCK") == "true"
 )
 
-# Força a desativação do modo mock em produção ou se configurado no .env
+# Força a desativação do modo mock em produção (FLASK_ENV=production) ou se DISABLE_MOCK=true
 if os.environ.get("DISABLE_MOCK") == "true" or os.environ.get("FLASK_ENV") == "production":
     is_mock_mode = False
 
@@ -235,7 +237,6 @@ class SupabaseService:
             except Exception as e:
                 return None, str(e)
 
-
     @staticmethod
     def login(email, password=None):
         """Verifica a existência do perfil para fins de login na fase 1"""
@@ -265,15 +266,14 @@ class SupabaseService:
                                 for row in all_profs.data:
                                     row_tel = row.get("telefone")
                                     if row_tel:
-        else:
-            with open(htaccess_path, "w", encoding="utf-8") as f:
-                f.write(regra)
-            print("Seguranca: Criado .htaccess com regra de protecao ao mock-db.json.")
-    except Exception as e:
-        print(f"Erro ao verificar/atualizar protecao do .htaccess: {e}")
+                                        row_digits = "".join(filter(str.isdigit, str(row_tel)))
+                                        if row_digits and row_digits == input_digits:
+                                            resolved_email = row.get("email")
+                                            break
+                    except Exception as e:
+                        print(f"Erro ao buscar email por telefone no Supabase: {e}")
 
-# Executa o check de segurança na inicialização do módulo
-garantir_protecao_mock_db()
+        return resolved_email
 
 class MockDb:
     def __init__(self):

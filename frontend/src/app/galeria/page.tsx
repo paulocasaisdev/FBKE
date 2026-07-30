@@ -67,7 +67,7 @@ export default function GaleriaPage() {
               Memórias & Registros Fotográficos
             </span>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-white">
               GALERIA DE FOTOS & EVENTOS
             </h1>
 

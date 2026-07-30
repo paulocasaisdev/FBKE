@@ -46,7 +46,7 @@ export default function DojoKunPublicPage() {
             </span>
 
             {/* Kanji Calligraphy */}
-            <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-200 to-slate-400 tracking-widest leading-none select-none">
+            <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black text-white tracking-widest leading-none select-none">
               道場訓
             </h1>
 

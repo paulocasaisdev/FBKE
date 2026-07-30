@@ -91,7 +91,7 @@ export default function EquipePage() {
               Corpo Técnico & Professores
             </span>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-white">
               NOSSA EQUIPE TÉCNICA
             </h1>
 
