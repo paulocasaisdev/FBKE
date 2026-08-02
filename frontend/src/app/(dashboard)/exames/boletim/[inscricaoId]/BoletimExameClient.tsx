@@ -91,6 +91,13 @@ export default function BoletimExameClient({ params }: { params: Promise<{ inscr
         if (!res.ok) throw new Error('Não foi possível carregar a ficha.');
         const data = await res.json();
         
+        // Aluno só pode ver o seu próprio boletim de exame
+        if (tipo === 'atleta' && data.candidato && String(data.candidato.atleta_id) !== String(usuario.id)) {
+          console.warn("Acesso negado: atletas só podem visualizar o seu próprio boletim.");
+          router.push('/exames');
+          return;
+        }
+
         setCandidato(data.candidato);
         setExame(data.exame);
         setExaminadorNome(data.examinador_nome || 'Banca Examinadora');
@@ -103,7 +110,7 @@ export default function BoletimExameClient({ params }: { params: Promise<{ inscr
     };
 
     carregarDados();
-  }, [inscricaoId, usuario, carregando]);
+  }, [inscricaoId, usuario, tipo, carregando, router]);
 
   const handlePrint = () => {
     window.print();

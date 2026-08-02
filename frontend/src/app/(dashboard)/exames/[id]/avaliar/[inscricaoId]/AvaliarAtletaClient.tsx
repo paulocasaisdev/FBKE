@@ -82,8 +82,8 @@ export default function AvaliarAtletaClient({ params }: { params: Promise<{ id: 
         }
 
         // Verifica status do exame
-        if (data.exame.status !== 'em_andamento') {
-          alert('Este exame não está em andamento no momento.');
+        if (!['publicado', 'em_andamento'].includes(data.exame.status)) {
+          alert('Este exame não está ativo para avaliações.');
           router.push(`/exames/${exameId}`);
           return;
         }

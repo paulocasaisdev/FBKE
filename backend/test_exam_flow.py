@@ -38,7 +38,8 @@ def test_full_exam_flow(client):
         'nome': 'Atleta Teste Fluxo',
         'email': f'atleta-test-{atleta_id[:8]}@example.com',
         'tipo': 'atleta',
-        'status': 'ativo'
+        'status': 'ativo',
+        'data_nascimento': '1990-01-01'
     })
     SupabaseService.insert('atletas', {
         'id': atleta_id,
@@ -49,6 +50,20 @@ def test_full_exam_flow(client):
         'faixa': 'Branca',
         'status': 'ativo'
     })
+    # Forçar created_at antigo via update (o insert do mock sobrescreve o created_at)
+    SupabaseService.update('profiles', atleta_id, {'created_at': '2025-01-01T00:00:00Z'})
+    SupabaseService.update('atletas', atleta_id, {'created_at': '2025-01-01T00:00:00Z'})
+    
+    # Adicionar presenças de treino para cumprir os requisitos da carência
+    for i in range(1, 35):
+        dia = f"{i:02d}" if i <= 28 else "28"
+        SupabaseService.insert('presencas', {
+            'atleta_id': atleta_id,
+            'atleta_nome': 'Atleta Teste Fluxo',
+            'data': f'2025-02-{dia}',
+            'status': 'presente',
+            'created_at': f'2025-02-{dia}T10:00:00Z'
+        })
     candidato_payload = {
         'exame_id': exame_id,
         'atleta_id': atleta_id,

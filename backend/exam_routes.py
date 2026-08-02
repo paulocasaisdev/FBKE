@@ -591,9 +591,15 @@ def create_exam_routes(app: Flask):
             return jsonify({"error": "Nenhum candidato aprovado para emitir certificados."}), 400
 
         certificados_existentes, _ = SupabaseService.get_all("certificados")
-        atletas_com_cert = set(c.get("atleta_id") for c in (certificados_existentes or []))
+        atletas_com_cert = set(
+            c.get("atleta_id") for c in (certificados_existentes or [])
+            if str(c.get("exame_id")) == str(id)
+        )
 
         count = 0
+        from datetime import datetime
+        data_atual = datetime.utcnow().date().isoformat()
+
         for c in aprovados:
             if c["atleta_id"] not in atletas_com_cert:
                 import hashlib
@@ -602,8 +608,9 @@ def create_exam_routes(app: Flask):
 
                 SupabaseService.insert("certificados", {
                     "atleta_id": c["atleta_id"],
+                    "exame_id": id,
                     "codigo_validacao": hash_code,
-                    "data_emissao": datetime.utcnow().date().isoformat() if 'datetime' in globals() else "2026-06-08"
+                    "data_emissao": data_atual
                 })
                 count += 1
 
@@ -618,7 +625,7 @@ def create_exam_routes(app: Flask):
         return jsonify({"examinadores": examinadores}), 200
 
 def distribuir_proximos_fila(exame_id):
-    """Distribui candidatos 'inscrito' sem banca para os examinadores vinculados ao exame (máx 3 por banca)."""
+    """Distribui candidatos 'inscrito' sem banca para os examinadores vinculados ao exame (máx 9 por banca)."""
     # Busca todos os candidatos do exame
     candidatos_exame, _ = SupabaseService.get_all("candidatos_exame", filter_dict={"exame_id": exame_id})
     if not candidatos_exame:
@@ -645,14 +652,14 @@ def distribuir_proximos_fila(exame_id):
     if not candidatos_fila:
         return
 
-    # Para cada candidato sem banca, encontrar o examinador com menos de 3 ativos
+    # Para cada candidato sem banca, encontrar o examinador com menos de 9 ativos
     for cand in candidatos_fila:
         for ex_id in examinador_ids:
             ativos_do_ex = [
                 c for c in candidatos_exame
                 if c.get("avaliado_por") == ex_id and c.get("status") == "inscrito"
             ]
-            if len(ativos_do_ex) < 3:
+            if len(ativos_do_ex) < 9:
                 SupabaseService.update(tabela, cand["id"], {"avaliado_por": ex_id})
                 # Atualiza localmente para evitar dupla contagem no loop
                 cand["avaliado_por"] = ex_id

@@ -96,8 +96,8 @@ def create_atleta_routes(app: Flask):
         from app import get_current_user
 
         user = get_current_user()
-        if not user or user.get("tipo") not in ["admin", "filial"]:
-            return jsonify({"error": "Não autorizado"}), 403
+        if not user:
+            return jsonify({"error": "Não autenticado"}), 401
 
         atletas_db, error = SupabaseService.get_all("atletas")
         profiles_db, _ = SupabaseService.get_all("profiles")
@@ -116,8 +116,13 @@ def create_atleta_routes(app: Flask):
             else:
                 item = dict(atl)
 
+            # Se for atleta, só pode visualizar o seu próprio perfil para privacidade de dados
+            if user.get("tipo") == "atleta":
+                if str(item.get("id", "")).lower() != str(user.get("id", "")).lower():
+                    continue
+
             # Se for perfil de filial, filtra para mostrar apenas atletas vinculados a esta filial
-            if user.get("tipo") == "filial":
+            elif user.get("tipo") == "filial":
                 user_id_str = str(user.get("id", "")).lower()
                 filial_id_str = str(item.get("filial_id", "")).lower()
                 if filial_id_str != user_id_str:

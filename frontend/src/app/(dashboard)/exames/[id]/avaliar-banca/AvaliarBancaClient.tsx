@@ -58,8 +58,8 @@ export default function AvaliarBancaClient({ params }: { params: Promise<{ id: s
       );
       setInscricoesAtivas(ativos);
 
-      if (data.exame.status !== 'em_andamento') {
-        alert('Este exame não está em andamento.');
+      if (!['publicado', 'em_andamento'].includes(data.exame.status)) {
+        alert('Este exame não está ativo para avaliações.');
         router.push(`/exames/${exameId}`);
         return;
       }
@@ -114,7 +114,7 @@ export default function AvaliarBancaClient({ params }: { params: Promise<{ id: s
             <Zap size={20} className="text-[#CE1126] animate-pulse" /> Banca Concorrente
           </h2>
           <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider font-bold">
-            Avaliação Técnica Simultânea (Máx 3 atletas) · {exame.titulo}
+            Avaliação Técnica Simultânea (Máx 9 atletas) — {exame.titulo}
           </p>
         </div>
       </div>

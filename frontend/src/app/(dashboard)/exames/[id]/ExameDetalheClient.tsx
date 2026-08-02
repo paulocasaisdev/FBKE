@@ -275,6 +275,7 @@ export default function ExameDetalheClient({ id: idProp }: { id: string }) {
   const cfg = statusConfig[exame.status] || { label: exame.status, color: 'bg-zinc-900 text-zinc-400' };
   const proximos = PROXIMOS_STATUS[exame.status] || [];
   const aprovados = candidatos.filter(c => c.status === 'aprovado').length;
+  const meusCandidatosDesignados = candidatos.filter(c => c.avaliado_por === usuario?.id);
 
   return (
     <main className="p-4 sm:p-6 lg:p-8 xl:p-10 space-y-8 w-full max-w-7xl mx-auto font-sans text-slate-900">
@@ -368,6 +369,90 @@ export default function ExameDetalheClient({ id: idProp }: { id: string }) {
         ))}
       </div>
 
+      {/* Alunos Designados para sua Banca */}
+      {meusCandidatosDesignados.length > 0 && (
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <h3 className="font-extrabold text-slate-900 flex items-center gap-2 text-xs uppercase tracking-wider">
+                <Award size={16} className="text-[#002B7F]" /> Alunos Designados para sua Banca
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Você é o examinador designado para avaliar estes atletas neste exame.
+              </p>
+            </div>
+            {meusCandidatosDesignados.some(c => c.status === 'inscrito') && ['publicado', 'em_andamento'].includes(exame.status) && (
+              <Link
+                href={`/exames/${id}/avaliar-banca`}
+                className="inline-flex items-center justify-center gap-1.5 bg-[#002B7F] hover:bg-blue-900 text-white font-bold px-4 py-2.5 rounded-xl transition text-xs uppercase tracking-wider shadow-sm cursor-pointer"
+              >
+                <Zap size={13} className="animate-pulse" /> Banca Concorrente (Avaliar Todos Juntos)
+              </Link>
+            )}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {meusCandidatosDesignados.map((c) => {
+              const podeAvaliar = c.status === 'inscrito' && ['publicado', 'em_andamento'].includes(exame.status);
+
+              return (
+                <div key={c.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between hover:border-slate-300 transition">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-sm">{c.atleta_nome}</h4>
+                        <p className="text-[10px] text-slate-500 mt-0.5">{c.filial_nome}</p>
+                      </div>
+                      <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md border ${
+                        c.status === 'aprovado'
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                          : c.status === 'reprovado'
+                          ? 'bg-red-50 text-[#CE1126] border-red-200'
+                          : c.status === 'inscrito'
+                          ? 'bg-blue-50 text-[#002B7F] border-blue-200'
+                          : 'bg-slate-100 text-slate-600 border-slate-200'
+                      }`}>
+                        {c.status === 'pendente' ? 'Pendente' :
+                         c.status === 'inscrito' ? 'Em Exame' :
+                         c.status === 'aprovado' ? 'Aprovado' :
+                         c.status === 'reprovado' ? 'Reprovado' : c.status}
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-slate-600 font-medium">
+                      <span>Graduação: {c.faixa_atual} → </span>
+                      <strong className="text-[#002B7F]">{c.graduacao_pretendida}</strong>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 mt-3 border-t border-slate-200/60 flex items-center justify-between text-xs">
+                    {podeAvaliar ? (
+                      <Link
+                        href={`/exames/${id}/avaliar/${c.id}`}
+                        className="w-full text-center bg-white hover:bg-[#002B7F] hover:text-white text-[#002B7F] border border-blue-200 font-bold py-2 rounded-xl transition text-[10px] uppercase tracking-wider cursor-pointer shadow-2xs"
+                      >
+                        Avaliar Atleta
+                      </Link>
+                    ) : c.status === 'aprovado' && c.dados_banca ? (
+                      <Link
+                        href={`/exames/boletim/${c.id}`}
+                        className="w-full text-center bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold py-2 rounded-xl transition text-[10px] uppercase tracking-wider cursor-pointer"
+                      >
+                        Visualizar Boletim
+                      </Link>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 italic font-medium w-full text-center py-1">
+                        {c.status === 'pendente' ? 'Aguardando início' : 'Avaliação concluída'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Seção de Examinadores e Distribuição de Bancas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
@@ -436,8 +521,8 @@ export default function ExameDetalheClient({ id: idProp }: { id: string }) {
                         <p className="font-bold text-slate-900 text-xs sm:text-sm">{ex.nome}</p>
                         <p className="text-[10px] text-slate-500 mt-0.5">Banca de Avaliação</p>
                       </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${ativos.length >= 3 ? 'bg-red-50 text-[#CE1126] border-red-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'}`}>
-                        {ativos.length} / 3 ativos
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${ativos.length >= 9 ? 'bg-red-50 text-[#CE1126] border-red-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'}`}>
+                        {ativos.length} / 9 ativos
                       </span>
                     </div>
 

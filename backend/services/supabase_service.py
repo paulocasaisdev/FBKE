@@ -25,8 +25,8 @@ is_mock_mode = (
     or os.environ.get("FORCE_MOCK") == "true"
 )
 
-# Força a desativação do modo mock em produção (FLASK_ENV=production) ou se DISABLE_MOCK=true
-if os.environ.get("DISABLE_MOCK") == "true" or os.environ.get("FLASK_ENV") == "production":
+# Força a desativação do modo mock em produção (FLASK_ENV=production) ou se DISABLE_MOCK=true, exceto se FORCE_MOCK for true
+if (os.environ.get("DISABLE_MOCK") == "true" or os.environ.get("FLASK_ENV") == "production") and os.environ.get("FORCE_MOCK") != "true":
     is_mock_mode = False
 
 supabase: Client = None

@@ -47,7 +47,7 @@ function HankoOfficialSeal({ className = "w-24 h-24" }: { className?: string }) 
 }
 
 function CertificadosContent() {
-  const { usuario, isAdmin } = useAuth();
+  const { usuario, tipo, isAdmin } = useAuth();
   const searchParams = useSearchParams();
   
   const paramNome = searchParams.get('nome') || '';
@@ -121,6 +121,19 @@ function CertificadosContent() {
     }
   };
 
+  useEffect(() => {
+    if (atletasList.length > 0 && usuario && tipo === 'atleta' && !selectedAtletaId) {
+      const meuAtleta = atletasList.find(a => 
+        a.id === usuario.id || 
+        (a.cpf && a.cpf === usuario.cpf) || 
+        a.nome.toLowerCase() === usuario.nome.toLowerCase()
+      );
+      if (meuAtleta) {
+        handleSelectAtleta(meuAtleta.id);
+      }
+    }
+  }, [atletasList, usuario, tipo, selectedAtletaId]);
+
   const handleImprimir = () => {
     window.print();
   };
@@ -129,6 +142,8 @@ function CertificadosContent() {
     setNotif({ type: 'success', msg: 'Matriz do Certificado salva como padrão do sistema!' });
     setTimeout(() => setNotif({ type: '', msg: '' }), 4000);
   };
+
+  const deveExibirCertificado = isAdmin || !!selectedAtletaId;
 
   return (
     <main className="p-4 sm:p-6 lg:p-8 xl:p-10 space-y-8 w-full max-w-7xl mx-auto font-sans text-slate-900 print:p-0 print:m-0 print:max-w-none">
@@ -181,7 +196,8 @@ function CertificadosContent() {
       )}
 
       {/* PAINEL DE CONTROLE / FORMULÁRIO EDITÁVEL (Oculto na Impressão) */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6 print:hidden">
+      {tipo !== 'atleta' && (
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6 print:hidden">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2">
             <Sliders size={18} className="text-[#002B7F]" />
@@ -318,11 +334,13 @@ function CertificadosContent() {
 
         </div>
       </div>
+      )}
 
       {/* ========================================================================= */}
       {/* DIPLOMA MATRIZ TRADICIONAL JAPONÊS & PORTUGUÊS (PRONTO PARA IMPRESSÃO) */}
       {/* ========================================================================= */}
-      <div className="bg-amber-50/40 p-3 sm:p-6 rounded-3xl border border-amber-200/80 shadow-lg print:bg-white print:p-0 print:border-none print:shadow-none">
+      {deveExibirCertificado ? (
+        <div className="bg-amber-50/40 p-3 sm:p-6 rounded-3xl border border-amber-200/80 shadow-lg print:bg-white print:p-0 print:border-none print:shadow-none">
         
         {/* Folha do Certificado Matriz em Tamanho A5 Paisagem (210mm x 148mm) */}
         <div className="relative w-full max-w-[210mm] min-h-[148mm] mx-auto bg-[#FFFDF9] border-[10px] border-double border-[#8B0000] rounded-lg p-6 sm:p-8 shadow-2xl text-slate-900 overflow-hidden font-serif cert-container-a5 print:border-[8px] print:p-6 print:shadow-none">
@@ -465,6 +483,19 @@ function CertificadosContent() {
         </div>
 
       </div>
+      ) : (
+        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-8 text-center text-slate-500 font-sans print:hidden">
+          {tipo === 'filial' ? (
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-600">
+              🥋 Por favor, selecione um atleta cadastrado no painel acima para visualizar e gerar o certificado correspondente.
+            </p>
+          ) : (
+            <p className="text-xs font-bold uppercase tracking-wider text-[#CE1126]">
+              ⚠️ Nenhum certificado homologado ou liberado para o seu perfil no momento.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Estilos Globais para Escrita Vertical em Kanji (Tate-gaki) e Impressão A5 Paisagem */}
       <style jsx global>{`

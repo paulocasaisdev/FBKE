@@ -7,7 +7,7 @@ backend_dir = os.path.dirname(os.path.abspath(__file__))
 env_path = os.path.join(backend_dir, ".env")
 load_dotenv(dotenv_path=env_path)
 
-def test_login(email, password):
+def run_login_test(email, password):
     url = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_ANON_KEY")
 
@@ -51,4 +51,4 @@ if __name__ == "__main__":
         email = sys.argv[1]
         password = sys.argv[2]
 
-    test_login(email, password)
+    run_login_test(email, password)

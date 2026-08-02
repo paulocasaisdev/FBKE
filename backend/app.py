@@ -1,9 +1,11 @@
+# Reloader timestamp: 2026-08-02T18:29:43.199963
 import os
 import sys
 # Adiciona o diretório atual e o diretório pai ao sys.path para permitir importações flexíveis
 app_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, app_dir)
 sys.path.insert(1, os.path.dirname(app_dir))
+# Forçando reloader do Flask para ler mock-db.json atualizado: 02/08/2026 11:35
 
 
 from flask import Flask, request, jsonify
@@ -122,6 +124,7 @@ from notif_whatsapp_routes import create_whatsapp_routes
 from documentos_assinados_routes import create_documentos_assinados_routes
 from despesa_routes import create_despesa_routes
 from upload_routes import create_upload_routes
+from tournament_routes import create_tournament_routes
 
 # Registrar todas as rotas
 create_auth_routes(app)
@@ -147,6 +150,7 @@ create_whatsapp_routes(app)
 create_documentos_assinados_routes(app)
 create_despesa_routes(app)
 create_upload_routes(app)
+create_tournament_routes(app)
 
 @app.route("/api/health", methods=["GET"])
 def health_check():

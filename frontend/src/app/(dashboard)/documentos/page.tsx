@@ -36,9 +36,19 @@ interface DocumentoAssinado {
 export default function DocumentosPage() {
   const { usuario, tipo } = useAuth();
   const isAdmin = tipo === 'admin';
+  const podeGerenciarDocumentos = tipo === 'admin' || tipo === 'filial';
 
   const [activeTab, setActiveTab] = useState<'downloads' | 'assinaturas'>('downloads');
   const [documentos, setDocumentos] = useState<Documento[]>([]);
+
+  const documentosFiltrados = documentos.filter(doc => {
+    if (tipo === 'atleta') {
+      const tipoDoc = (doc.tipo || '').toLowerCase();
+      const tituloDoc = (doc.titulo || '').toLowerCase();
+      return !tipoDoc.includes('certificado') && !tituloDoc.includes('certificado');
+    }
+    return true;
+  });
   const [docsAssinados, setDocsAssinados] = useState<DocumentoAssinado[]>([]);
   const [atletas, setAtletas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -202,24 +212,26 @@ export default function DocumentosPage() {
         </div>
 
         {/* Botões do Topo Alinhados */}
-        <div className="grid grid-cols-1 sm:flex sm:items-center sm:justify-end gap-3 w-full md:w-auto shrink-0">
-          <button
-            onClick={() => setModalSolicitarAberto(true)}
-            className="h-11 px-5 w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-50 text-[#002B7F] border border-blue-200 hover:bg-[#002B7F] hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer shadow-xs whitespace-nowrap"
-          >
-            <FileCheck size={16} className="shrink-0" /> Solicitar Termo
-          </button>
+        {podeGerenciarDocumentos && (
+          <div className="grid grid-cols-1 sm:flex sm:items-center sm:justify-end gap-3 w-full md:w-auto shrink-0">
+            <button
+              onClick={() => setModalSolicitarAberto(true)}
+              className="h-11 px-5 w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-50 text-[#002B7F] border border-blue-200 hover:bg-[#002B7F] hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer shadow-xs whitespace-nowrap"
+            >
+              <FileCheck size={16} className="shrink-0" /> Solicitar Termo
+            </button>
 
-          <button
-            onClick={() => {
-              setForm({ titulo: '', tipo: 'Regulamento', desc: '', arquivo_url: '' });
-              setModalAberto(true);
-            }}
-            className="h-11 px-5 w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#CE1126] hover:bg-red-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm cursor-pointer whitespace-nowrap"
-          >
-            <Plus size={18} className="shrink-0" /> Novo Documento
-          </button>
-        </div>
+            <button
+              onClick={() => {
+                setForm({ titulo: '', tipo: 'Regulamento', desc: '', arquivo_url: '' });
+                setModalAberto(true);
+              }}
+              className="h-11 px-5 w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#CE1126] hover:bg-red-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm cursor-pointer whitespace-nowrap"
+            >
+              <Plus size={18} className="shrink-0" /> Novo Documento
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Notifications */}
@@ -240,7 +252,7 @@ export default function DocumentosPage() {
             activeTab === 'downloads' ? 'border-b-2 border-[#002B7F] text-[#002B7F]' : 'text-slate-500 hover:text-slate-900'
           }`}
         >
-          <BookOpen size={15} /> Documentos para Download ({documentos.length})
+          <BookOpen size={15} /> Documentos para Download ({documentosFiltrados.length})
         </button>
 
         <button
@@ -256,7 +268,7 @@ export default function DocumentosPage() {
       {/* Aba 1: Documentos para Download */}
       {activeTab === 'downloads' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {documentos.map((doc) => (
+          {documentosFiltrados.map((doc) => (
             <div key={doc.id || doc.titulo} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-[#002B7F]/40 transition space-y-4 flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="flex justify-between items-start">
