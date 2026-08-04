@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { CalendarDays, Trophy, Plus, Users, Loader2, Play, Award, Edit, Trash2, X, ChevronRight } from 'lucide-react';
+import { CalendarDays, Trophy, Plus, Users, Loader2, Play, Award, Edit, Trash2, X, ChevronRight, Wifi, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";

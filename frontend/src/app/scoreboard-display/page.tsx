@@ -3,6 +3,9 @@
 import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Wifi, WifiOff, Volume2, Award, ShieldAlert } from "lucide-react";
+import { karateDb, OfflineMatch } from "@/utils/indexedDb";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 function ScoreboardDisplayContent() {
   const searchParams = useSearchParams();
@@ -16,6 +19,7 @@ function ScoreboardDisplayContent() {
   // Estado da luta sincronizado
   const [state, setState] = useState({
     match_id: null,
+    category_id: null,
     category_name: "Aguardando Conexão...",
     athlete_red: "Aka",
     athlete_blue: "Ao",
@@ -26,11 +30,13 @@ function ScoreboardDisplayContent() {
     penalties_blue: 0,
     timer_seconds: 180,
     timer_active: false,
-    is_finished: false
+    is_finished: false,
+    invert_sides: false
   });
 
   const wsRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const [nextMatch, setNextMatch] = useState<OfflineMatch | null>(null);
 
   // Inicializa áudio no primeiro clique/interação para satisfazer política de autoplay do navegador
   const initAudio = () => {
@@ -114,6 +120,65 @@ function ScoreboardDisplayContent() {
     };
   }, [wsIp]);
 
+  // Busca o próximo confronto na mesma categoria
+  useEffect(() => {
+    const fetchNextMatch = async () => {
+      const categoryId = (state as any).category_id;
+      const currentMatchId = state.match_id;
+      if (!categoryId) return;
+
+      let allMatches: any[] = [];
+      try {
+        // Tenta carregar do IndexedDB primeiro
+        allMatches = await karateDb.getMatchesByCategory(categoryId);
+
+        // Se estiver online, atualiza em segundo plano a partir do servidor
+        if (navigator.onLine) {
+          const res = await fetch(`${API_URL}/api/tournaments/categories/${categoryId}/matches`, {
+            credentials: "include"
+          });
+          if (res.ok) {
+            const data = await res.json();
+            allMatches = data.matches || [];
+            await karateDb.saveMatches(allMatches);
+          }
+        }
+      } catch (err) {
+        console.warn("Erro ao carregar confrontos para próxima disputa:", err);
+      }
+
+      if (allMatches && allMatches.length > 0) {
+        // Encontra a luta atual
+        const current = allMatches.find(m => m.id === currentMatchId);
+        const currentOrder = current ? current.match_order : -1;
+
+        // Filtra as próximas lutas que não sejam a atual, não terminadas e com match_order maior ou igual
+        const upcoming = allMatches.filter(m => 
+          m.id !== currentMatchId && 
+          m.status !== "finished" && 
+          m.status !== "bye" &&
+          (m.athlete_red_id || m.athlete_blue_id)
+        );
+
+        // Ordena por match_order
+        upcoming.sort((a, b) => a.match_order - b.match_order);
+
+        // A próxima disputa será o primeiro item que tem match_order maior do que a atual,
+        // ou simplesmente o primeiro item disponível na fila de scheduled.
+        let next = upcoming.find(m => m.match_order > currentOrder);
+        if (!next && upcoming.length > 0) {
+          next = upcoming[0];
+        }
+
+        setNextMatch(next || null);
+      } else {
+        setNextMatch(null);
+      }
+    };
+
+    fetchNextMatch();
+  }, [state.category_id, state.match_id]);
+
   // Formatação do tempo MM:SS
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -154,7 +219,7 @@ function ScoreboardDisplayContent() {
 
   return (
     <div 
-      className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between select-none overflow-hidden font-sans"
+      className="h-screen max-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between select-none overflow-hidden font-sans"
       onClick={initAudio}
     >
       {/* Barra Superior - Metadados e Conexão */}
@@ -235,8 +300,8 @@ function ScoreboardDisplayContent() {
       <div className="flex-grow grid grid-cols-5 items-stretch relative">
         
         {/* AKA Lado Esquerdo (Vermelho) */}
-        <div className="col-span-2 bg-red-950/15 flex flex-col justify-between p-12 border-r border-slate-900 relative">
-          <div className="absolute top-0 left-0 w-3 h-full bg-[#CE1126]" />
+        <div className={`col-span-2 bg-red-950/15 flex flex-col justify-between p-12 border-slate-900 relative ${state.invert_sides ? 'order-3' : 'order-1 border-r'}`}>
+          <div className={`absolute top-0 w-3 h-full bg-[#CE1126] ${state.invert_sides ? 'right-0' : 'left-0'}`} />
           
           {/* Nome e Dojo */}
           <div className="space-y-3">
@@ -251,14 +316,14 @@ function ScoreboardDisplayContent() {
                 </span>
               )}
             </div>
-            <h2 className="text-4xl font-black text-slate-100 tracking-wide uppercase truncate max-w-[400px]">
+            <h2 className="text-[3vw] sm:text-[4vh] font-black text-slate-100 tracking-wide uppercase truncate max-w-[35vw]">
               {state.athlete_red}
             </h2>
           </div>
 
           {/* Pontos Gigantes */}
-          <div className="text-center my-6 flex-grow flex items-center justify-center">
-            <span className="text-[250px] font-black text-red-500 leading-none tracking-tighter tabular-nums drop-shadow-[0_0_40px_rgba(206,17,38,0.4)]">
+          <div className="text-center my-4 flex-grow flex items-center justify-center">
+            <span className="text-[15vw] sm:text-[28vh] font-black text-red-500 leading-none tracking-tighter tabular-nums drop-shadow-[0_0_40px_rgba(206,17,38,0.4)]">
               {state.score_red}
             </span>
           </div>
@@ -273,7 +338,7 @@ function ScoreboardDisplayContent() {
         </div>
 
         {/* Painel do Timer (Centro) */}
-        <div className="col-span-1 bg-slate-950 flex flex-col justify-center items-center p-6 border-x border-slate-900 relative">
+        <div className="col-span-1 bg-slate-950 flex flex-col justify-center items-center p-6 border-x border-slate-900 relative order-2">
           
           {/* Cronômetro Circular/Gigante */}
           <div className="flex flex-col items-center justify-center space-y-4">
@@ -281,7 +346,7 @@ function ScoreboardDisplayContent() {
             
             <div className="bg-slate-900 border-2 border-slate-800 rounded-[40px] px-8 py-10 shadow-2xl">
               <span 
-                className={`text-7xl font-black font-mono tracking-wider tabular-nums ${
+                className={`text-[5vw] sm:text-[8vh] font-black font-mono tracking-wider tabular-nums ${
                   state.timer_active ? "text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "text-amber-500 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]"
                 }`}
               >
@@ -298,8 +363,8 @@ function ScoreboardDisplayContent() {
         </div>
 
         {/* AO Lado Direito (Azul) */}
-        <div className="col-span-2 bg-blue-950/15 flex flex-col justify-between p-12 relative text-right">
-          <div className="absolute top-0 right-0 w-3 h-full bg-[#002B7F]" />
+        <div className={`col-span-2 bg-blue-950/15 flex flex-col justify-between p-12 relative text-right ${state.invert_sides ? 'order-1 border-r border-slate-900' : 'order-3'}`}>
+          <div className={`absolute top-0 w-3 h-full bg-[#002B7F] ${state.invert_sides ? 'left-0' : 'right-0'}`} />
           
           {/* Nome e Dojo */}
           <div className="space-y-3">
@@ -314,14 +379,14 @@ function ScoreboardDisplayContent() {
                 Ao (Azul)
               </span>
             </div>
-            <h2 className="text-4xl font-black text-slate-100 tracking-wide uppercase truncate max-w-[400px]">
+            <h2 className="text-[3vw] sm:text-[4vh] font-black text-slate-100 tracking-wide uppercase truncate max-w-[35vw]">
               {state.athlete_blue}
             </h2>
           </div>
 
           {/* Pontos Gigantes */}
-          <div className="text-center my-6 flex-grow flex items-center justify-center">
-            <span className="text-[250px] font-black text-blue-400 leading-none tracking-tighter tabular-nums drop-shadow-[0_0_40px_rgba(59,130,246,0.4)]">
+          <div className="text-center my-4 flex-grow flex items-center justify-center">
+            <span className="text-[15vw] sm:text-[28vh] font-black text-blue-400 leading-none tracking-tighter tabular-nums drop-shadow-[0_0_40px_rgba(59,130,246,0.4)]">
               {state.score_blue}
             </span>
           </div>
@@ -339,8 +404,29 @@ function ScoreboardDisplayContent() {
 
 
 
+      {/* Próxima Disputa Banner */}
+      {nextMatch && (
+        <div className="bg-slate-900/90 backdrop-blur-md border-t border-slate-850 px-8 py-4 flex items-center justify-between gap-4 text-xs font-bold uppercase tracking-wider text-slate-300">
+          <div className="flex items-center gap-2 text-amber-500">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+            <span>Próximo Confronto:</span>
+          </div>
+          <div className="flex items-center gap-4 text-slate-100 font-black">
+            <span className="text-red-500">{nextMatch.athlete_red_name || "Aka"}</span>
+            <span className="text-slate-500 font-normal">vs</span>
+            <span className="text-blue-400">{nextMatch.athlete_blue_name || "Ao"}</span>
+            {nextMatch.dojo_name && (
+              <span className="text-[10px] font-bold text-slate-500 italic lowercase normal-case">({nextMatch.dojo_name})</span>
+            )}
+          </div>
+          <div className="text-[10px] text-slate-500 font-mono">
+            Ordem #{nextMatch.match_order}
+          </div>
+        </div>
+      )}
+
       {/* Footer Fino de Créditos */}
-      <div className="bg-slate-950 border-t border-slate-900 px-8 py-3 text-center text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+      <div className="bg-slate-950 border-t border-slate-900 px-8 py-2.5 text-center text-[10px] font-bold text-slate-600 uppercase tracking-widest">
         Sistema de Gestão de Karatê FBKE — Scoreboard Real-time LAN
       </div>
     </div>

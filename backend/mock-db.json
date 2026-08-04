@@ -18905,6 +18905,15 @@
       "detalhes": "Candidato Atleta Teste Fluxo (ID: 497866a5-9c42-4a09-8ccf-862e34a94b88) status de exame atualizado para aprovado (Graduação pretendida: Amarela)",
       "ip": "127.0.0.1",
       "created_at": "2026-08-02T22:58:55.045386"
+    },
+    {
+      "id": "48fafab7-557a-4a10-be5d-79ad55c9931b",
+      "usuario_id": "6513aa27-452f-462e-8f5a-b3f2052612f9",
+      "usuario_nome": "Super Administrador",
+      "acao": "Login",
+      "detalhes": "Usuário admin@grkk.com.br realizou login com sucesso",
+      "ip": "127.0.0.1",
+      "created_at": "2026-08-04T02:13:39.709636"
     }
   ],
   "cms_config": [
@@ -28297,6 +28306,42 @@
       },
       "id": "c503b9a0-1308-4b9c-ac0a-2bbdac9df6bf",
       "created_at": "2026-08-02T22:53:47.144060"
+    },
+    {
+      "match_id": "luta-demonstracao",
+      "log_type": "score",
+      "details": {
+        "action": "add_points",
+        "value": 1,
+        "athlete_color": "red",
+        "timer_remaining": "01:55"
+      },
+      "id": "d2a771b8-2a2f-424f-bf9e-dd7f9da6d6bc",
+      "created_at": "2026-08-04T02:20:00.221674"
+    },
+    {
+      "match_id": "4a74d532-9f09-4f98-b6bb-56fdb62e483f",
+      "log_type": "score",
+      "details": {
+        "action": "add_points",
+        "value": 1,
+        "athlete_color": "red",
+        "timer_remaining": "03:00"
+      },
+      "id": "c0224af3-7903-4307-9c40-79d6731c4e9c",
+      "created_at": "2026-08-04T02:59:45.413050"
+    },
+    {
+      "match_id": "4a74d532-9f09-4f98-b6bb-56fdb62e483f",
+      "log_type": "score",
+      "details": {
+        "action": "add_points",
+        "value": 1,
+        "athlete_color": "blue",
+        "timer_remaining": "03:00"
+      },
+      "id": "7c53c85e-65e8-4491-ba11-a8f08e7e5135",
+      "created_at": "2026-08-04T02:59:49.560270"
     }
   ],
   "eventos_chaves": [

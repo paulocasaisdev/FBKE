@@ -16,6 +16,7 @@ function ScoreboardContent() {
 
   // Estados principais da Luta
   const [match, setMatch] = useState<OfflineMatch | null>(null);
+  const [invertSides, setInvertSides] = useState(false);
   const [scoreRed, setScoreRed] = useState(0);
   const [scoreBlue, setScoreBlue] = useState(0);
   const [senshu, setSenshu] = useState<'red' | 'blue' | null>(null);
@@ -137,6 +138,7 @@ function ScoreboardContent() {
         type: "update_scoreboard",
         state: {
           match_id: matchId,
+          category_id: match?.category_id || searchParams.get("category_id"),
           category_name: categoryName,
           athlete_red: match?.athlete_red_name || "Aka",
           athlete_blue: match?.athlete_blue_name || "Ao",
@@ -147,7 +149,8 @@ function ScoreboardContent() {
           penalties_blue: penaltiesBlue,
           timer_seconds: timerSeconds,
           timer_active: timerActive,
-          is_finished: match?.status === "finished"
+          is_finished: match?.status === "finished",
+          invert_sides: invertSides
         }
       }));
     }
@@ -194,7 +197,7 @@ function ScoreboardContent() {
         status: match.status
       }]);
     }
-  }, [scoreRed, scoreBlue, senshu, penaltiesRed, penaltiesBlue, timerSeconds, timerActive, match]);
+  }, [scoreRed, scoreBlue, senshu, penaltiesRed, penaltiesBlue, timerSeconds, timerActive, match, invertSides]);
 
   // Controle do Timer
   useEffect(() => {
@@ -493,7 +496,7 @@ function ScoreboardContent() {
       <div className="flex-grow max-w-7xl mx-auto w-full p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Painel AKA (Red) - Lado Esquerdo */}
-        <div className="bg-red-950/10 border-2 border-red-900/40 rounded-3xl p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden">
+        <div className={`bg-red-950/10 border-2 border-red-900/40 rounded-3xl p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden ${invertSides ? 'order-3' : 'order-1'}`}>
           <div className="absolute top-0 left-0 w-2.5 h-full bg-red-600" />
           
           <div className="space-y-4">
@@ -576,7 +579,7 @@ function ScoreboardContent() {
         </div>
 
         {/* Painel Central - Timer e Controles Globais */}
-        <div className="bg-slate-900 border border-slate-850 rounded-3xl p-6 flex flex-col justify-between shadow-2xl space-y-6">
+        <div className="bg-slate-900 border border-slate-850 rounded-3xl p-6 flex flex-col justify-between shadow-2xl space-y-6 order-2">
           <div className="text-center">
             <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Cronômetro</span>
             <div className="bg-slate-950 border border-slate-850 rounded-2xl py-6 px-4 inline-block min-w-[200px]">
@@ -694,6 +697,22 @@ function ScoreboardContent() {
             </button>
           </div>
 
+          {/* Lados Aka / Ao */}
+          <div className="flex justify-between items-center pt-4 border-t border-slate-800 text-xs">
+            <span className="text-[10px] font-black uppercase text-slate-500">Lado do Aka / Ao:</span>
+            <button
+              onClick={() => setInvertSides(!invertSides)}
+              type="button"
+              className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition cursor-pointer border ${
+                invertSides 
+                  ? 'bg-amber-500 border-amber-600 text-slate-950' 
+                  : 'bg-slate-950 border-slate-800 text-slate-400'
+              }`}
+            >
+              {invertSides ? "Ao / Aka (Invertido)" : "Aka / Ao (Padrão)"}
+            </button>
+          </div>
+
           {/* Finalização manual */}
           <button
             onClick={() => handleFinalizeMatch()}
@@ -704,7 +723,7 @@ function ScoreboardContent() {
         </div>
 
         {/* Painel AO (Blue) - Lado Direito */}
-        <div className="bg-blue-950/10 border-2 border-blue-900/40 rounded-3xl p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden">
+        <div className={`bg-blue-950/10 border-2 border-blue-900/40 rounded-3xl p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden ${invertSides ? 'order-1' : 'order-3'}`}>
           <div className="absolute top-0 right-0 w-2.5 h-full bg-blue-600" />
           
           <div className="space-y-4">
